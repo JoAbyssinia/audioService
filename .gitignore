@@ -1,6 +1,5 @@
 ### Vert.x ###
 .vertx/
-
 ### Eclipse ###
 
 .metadata
@@ -88,6 +87,11 @@ cmake-buildTool-debug/
 
 # IntelliJ
 /out/
+volume/
+volume/*
+machine.json
+
+
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
