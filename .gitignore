@@ -89,8 +89,7 @@ cmake-buildTool-debug/
 /out/
 volume/
 volume/*
-machine.json
-
+volume
 
 
 # mpeltonen/sbt-idea plugin
