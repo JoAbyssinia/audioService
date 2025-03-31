@@ -1,33 +1,49 @@
 package com.JoAbyssinia.audioService;
 
-import com.JoAbyssinia.audioService.aws.S3ClientService;
-import com.JoAbyssinia.audioService.config.S3Config;
-import io.vertx.config.ConfigRetriever;
-import io.vertx.config.ConfigStoreOptions;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
-import io.vertx.core.json.JsonObject;
+import com.JoAbyssinia.audioService.verticle.AudioSegmentationWorkerVerticle;
+import com.JoAbyssinia.audioService.verticle.MetadataServiceVerticle;
+import io.vertx.core.*;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 
 public class MainVerticle extends AbstractVerticle {
+
+  Logger logger = LoggerFactory.getLogger(MainVerticle.class);
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
 
-    S3Config s3Config = new S3Config();
-    S3ClientService s3ClientService = new S3ClientService(s3Config.s3Client(), s3Config.s3Presigner());
-    s3ClientService.listFiles();
+    Future.all(
+            deployHelper(MetadataServiceVerticle.class.getName()),
+            deployHelper(AudioSegmentationWorkerVerticle.class.getName()))
+        .onComplete(
+            result -> {
+              if (result.succeeded()) {
+                logger.info("Audio service deployed");
+                startPromise.complete();
+              } else {
+                logger.info("Audio service failed");
+                startPromise.fail(result.cause());
+              }
+            });
+  }
 
-    vertx.createHttpServer().requestHandler(req -> {
-      req.response()
-        .putHeader("content-type", "text/plain")
-        .end("Hello from Vert.x!");
-    }).listen(8888).onComplete(http -> {
-      if (http.succeeded()) {
-        startPromise.complete();
-        System.out.println("HTTP server started on port 8888");
-      } else {
-        startPromise.fail(http.cause());
-      }
-    });
+  private Future<Void> deployHelper(String name) {
+    Promise<Void> promise = Promise.promise();
+
+    vertx
+        .deployVerticle(name)
+        .onSuccess(
+            id -> {
+              logger.info("Deployed verticle " + name);
+              promise.complete();
+            })
+        .onFailure(
+            err -> {
+              logger.error("Failed to deploy verticle " + name, err);
+              promise.fail(err);
+            });
+
+    return promise.future();
   }
 }
