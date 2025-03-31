@@ -37,17 +37,13 @@ public class AudioRouter {
               audioService
                   .save(audio)
                   .onSuccess(
-                      ar -> {
-                        context
-                            .response()
-                            .putHeader("content-type", "application/json")
-                            .setStatusCode(200)
-                            .end(Json.encode(audio));
-                      })
+                      ar -> context
+                          .response()
+                          .putHeader("content-type", "application/json")
+                          .setStatusCode(200)
+                          .end(Json.encode(audio)))
                   .onFailure(
-                      error -> {
-                        context.fail(500, error);
-                      });
+                      error -> context.fail(500, error));
             });
 
     // update

@@ -5,6 +5,7 @@ import com.JoAbyssinia.audioService.repository.AudioRepository;
 import com.JoAbyssinia.audioService.router.AudioRouter;
 import com.JoAbyssinia.audioService.service.AudioServiceImpl;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.ext.web.Router;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
@@ -20,10 +21,13 @@ public class MetadataVerticle extends AbstractVerticle {
 
   @Override
   public void start() throws Exception {
-
+    // create event bus
+    EventBus eventBus = vertx.eventBus();
+//   initialise classes
     PostgresConfig postgresConfig = new PostgresConfig(vertx);
     AudioRepository audioRepository = new AudioRepository(postgresConfig.getPool());
-    AudioServiceImpl audioService = new AudioServiceImpl(audioRepository);
+    AudioServiceImpl audioService = new AudioServiceImpl(eventBus ,audioRepository);
+
 
     Router router = new AudioRouter(vertx, audioService).getRouter();
     vertx
