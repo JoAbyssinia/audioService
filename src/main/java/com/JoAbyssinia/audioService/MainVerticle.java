@@ -1,7 +1,7 @@
 package com.JoAbyssinia.audioService;
 
 import com.JoAbyssinia.audioService.verticle.AudioSegmentationWorkerVerticle;
-import com.JoAbyssinia.audioService.verticle.MetadataServiceVerticle;
+import com.JoAbyssinia.audioService.verticle.MetadataVerticle;
 import io.vertx.core.*;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -14,7 +14,7 @@ public class MainVerticle extends AbstractVerticle {
   public void start(Promise<Void> startPromise) throws Exception {
 
     Future.all(
-            deployHelper(MetadataServiceVerticle.class.getName()),
+            deployHelper(MetadataVerticle.class.getName()),
             deployHelper(AudioSegmentationWorkerVerticle.class.getName()))
         .onComplete(
             result -> {

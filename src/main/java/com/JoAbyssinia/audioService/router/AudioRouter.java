@@ -2,6 +2,7 @@ package com.JoAbyssinia.audioService.router;
 
 import com.JoAbyssinia.audioService.entity.Audio;
 import com.JoAbyssinia.audioService.repository.AudioRepository;
+import com.JoAbyssinia.audioService.service.AudioService;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
@@ -13,11 +14,11 @@ import io.vertx.ext.web.handler.BodyHandler;
 public class AudioRouter {
 
   private final Vertx vertx;
-  private final AudioRepository repository;
+  private final AudioService audioService;
 
-  public AudioRouter(Vertx vertx, AudioRepository audioRepository) {
+  public AudioRouter(Vertx vertx, AudioService audioService) {
     this.vertx = vertx;
-    this.repository = audioRepository;
+    this.audioService = audioService;
   }
 
   public Router getRouter() {
@@ -33,7 +34,7 @@ public class AudioRouter {
               audio.setTitle(context.queryParams().get("title"));
               audio.setOriginalPath(context.queryParams().get("originalPath"));
 
-              repository
+              audioService
                   .save(audio)
                   .onSuccess(
                       ar -> {
@@ -55,7 +56,7 @@ public class AudioRouter {
         .get("/audio/list")
         .handler(
             context -> {
-              repository
+              audioService
                   .findAll()
                   .onSuccess(
                       audioList -> {
