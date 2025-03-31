@@ -54,7 +54,7 @@ public class AudioRepository {
     return promise.future();
   }
 
-  public Future<Audio> update(String newStatus, Long audioId) {
+  public Future<Audio> update(String newStatus, String streamPath, Long audioId) {
     if (audioId == null || newStatus == null || newStatus.isEmpty()) {
       return Future.failedFuture("Audio ID and status cannot be null or empty");
     }
@@ -63,7 +63,7 @@ public class AudioRepository {
 
     //  query's
     String selectQuery = "SELECT * FROM audio WHERE id = $1";
-    String updateQuery = "UPDATE audio SET status = $1 WHERE id = $2";
+    String updateQuery = "UPDATE audio SET status = $1, steampath =$2 WHERE id = $3";
 
     // extract the audio
     pool.preparedQuery(selectQuery)
@@ -84,7 +84,7 @@ public class AudioRepository {
 
               // update
               return pool.preparedQuery(updateQuery)
-                  .execute(Tuple.of(newStatus, audioId))
+                  .execute(Tuple.of(newStatus, streamPath, audioId))
                   .map(updateResult -> audio);
             })
         .onSuccess(promise::complete)
