@@ -11,7 +11,7 @@ services:
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
-  db:
+  postgres:
     image: postgres:latest
     restart: always
     container_name: postgres_db
@@ -24,13 +24,6 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-
-  adminer:
-    image: adminer
-    restart: always
-    container_name: adminer_ui
-    ports:
-      - "8080:8080"
 
 volumes:
   pgdata:

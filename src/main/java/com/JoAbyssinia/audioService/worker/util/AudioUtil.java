@@ -23,30 +23,30 @@ public class AudioUtil {
     Process process = new ProcessBuilder().command(commands).directory(outputFile).start();
 
     new Thread(
-      () -> {
-        try (BufferedReader bufferedReader =
-               new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-          String line;
-          while ((line = bufferedReader.readLine()) != null) {
-            LOGGER.info(line);
+        () -> {
+          try (BufferedReader bufferedReader =
+              new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+              LOGGER.info(line);
+            }
+          } catch (IOException e) {
+            throw new RuntimeException(e);
           }
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
+        });
 
     new Thread(
-      () -> {
-        try (BufferedReader bufferedReader =
-               new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-          String line;
-          while ((line = bufferedReader.readLine()) != null) {
-            LOGGER.error(line);
+        () -> {
+          try (BufferedReader bufferedReader =
+              new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+              LOGGER.error(line);
+            }
+          } catch (IOException e) {
+            throw new RuntimeException(e);
           }
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
+        });
 
     try {
       if (process.waitFor() != 0) {

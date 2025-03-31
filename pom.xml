@@ -55,9 +55,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-s3</artifactId>
-      <version>1.12.118</version>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+      <version>4.5.13</version>
     </dependency>
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
@@ -68,6 +68,21 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-pg-client</artifactId>
       <version>4.5.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.ongres.scram</groupId>
+      <artifactId>client</artifactId>
+      <version>2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-sql-client</artifactId>
+      <version>4.5.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.18.3</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
