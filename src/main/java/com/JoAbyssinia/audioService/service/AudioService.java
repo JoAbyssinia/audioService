@@ -13,5 +13,7 @@ public interface AudioService {
 
   Future<Audio> update(String newStatus, String streamPath, Long audioId);
 
+  Future<String> generatePresignedUrl(String fileName);
+
   Future<List<Audio>> findAll();
 }

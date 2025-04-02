@@ -51,6 +51,7 @@ public class S3Config {
                     AwsBasicCredentials.create(ACCESS_KEY_ID, ACCESS_KEY_SECRET)))
             .region(Region.of(REGION))
             .endpointOverride(URI.create(ENDPOINT))
+            .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
             .build();
   }
 

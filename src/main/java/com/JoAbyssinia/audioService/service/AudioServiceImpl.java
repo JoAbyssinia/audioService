@@ -20,10 +20,15 @@ public class AudioServiceImpl implements AudioService {
 
   private final AudioMetadataRepository audioMetadataRepository;
   private final EventBus eventBus;
+  private final AudioTransCoderService audioTransCoderService;
 
-  public AudioServiceImpl(EventBus eventBus, AudioMetadataRepository audioMetadataRepository) {
+  public AudioServiceImpl(
+      EventBus eventBus,
+      AudioMetadataRepository audioMetadataRepository,
+      AudioTransCoderService audioTransCoderService) {
     this.audioMetadataRepository = audioMetadataRepository;
     this.eventBus = eventBus;
+    this.audioTransCoderService = audioTransCoderService;
   }
 
   @Override
@@ -54,6 +59,11 @@ public class AudioServiceImpl implements AudioService {
   @Override
   public Future<Audio> update(String newStatus, String streamPath, Long audioId) {
     return audioMetadataRepository.update(newStatus, streamPath, audioId);
+  }
+
+  @Override
+  public Future<String> generatePresignedUrl(String fileName) {
+    return audioTransCoderService.generateResignedUrl(fileName);
   }
 
   @Override
