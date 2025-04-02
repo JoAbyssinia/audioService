@@ -1,13 +1,15 @@
 package com.JoAbyssinia.audioService.worker.util;
 
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Yohannes k Yimam
@@ -16,7 +18,9 @@ public class AudioUtil {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AudioUtil.class);
 
-  public static void transcodeToM3u8(File source, File outputFile) throws IOException {
+  public static Future<Void> transcodeToM3u8(File source, File outputFile) throws IOException {
+    Promise<Void> promise = Promise.promise();
+
     // build the commands
     List<String> commands = ffmpegCommands(source.getAbsolutePath());
 
@@ -50,11 +54,17 @@ public class AudioUtil {
 
     try {
       if (process.waitFor() != 0) {
+        promise.fail("Process exited with code " + process.exitValue());
         throw new RuntimeException("Process exited with code " + process.exitValue());
+      } else {
+        promise.complete();
       }
+
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
+
+    return promise.future();
   }
 
   private static List<String> ffmpegCommands(String src) {
