@@ -4,6 +4,7 @@ import com.JoAbyssinia.audioService.entity.Audio;
 import com.JoAbyssinia.audioService.service.AudioService;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 
@@ -50,23 +51,36 @@ public class AudioRouter {
     router
         .get("/audio/list")
         .handler(
-            context -> {
-              audioService
-                  .findAll()
-                  .onSuccess(
-                      audioList -> {
-                        context
-                            .response()
-                            .putHeader("content-type", "application/json")
-                            .setStatusCode(200)
-                            .end(Json.encode(audioList));
-                      })
-                  .onFailure(
-                      error -> {
-                        context.fail(500, error);
-                      });
-            });
+            context ->
+                audioService
+                    .findAll()
+                    .onSuccess(
+                        audioList ->
+                            context
+                                .response()
+                                .putHeader("content-type", "application/json")
+                                .setStatusCode(200)
+                                .end(Json.encode(audioList)))
+                    .onFailure(error -> context.fail(500, error)));
 
+    router
+        .get("/audio/presigned")
+        .handler(
+            context -> {
+              String fileName = context.queryParams().get("fileName");
+              audioService
+                  .generatePresignedUrl(fileName)
+                  .onSuccess(
+                      presignedUrl -> {
+                        JsonObject resignedUrlJson = new JsonObject();
+                        resignedUrlJson.put("presignedUrl", presignedUrl);
+                        context.response()
+                          .putHeader("content-type", "application/json")
+                          .setStatusCode(200)
+                          .end((resignedUrlJson.encode()));
+                      })
+                  .onFailure(error -> context.fail(500, error));
+            });
     return router;
   }
 }

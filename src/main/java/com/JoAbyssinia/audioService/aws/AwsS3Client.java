@@ -180,15 +180,20 @@ public class AwsS3Client {
 
   public Future<String> generateResignedUrl(String fileName) {
     Promise<String> promise = Promise.promise();
-    PresignedGetObjectRequest objectRequest =
-        s3Presigner.presignGetObject(
-            builder ->
-                builder
-                    .signatureDuration(Duration.ofMinutes(30))
-                    .getObjectRequest(
-                        GetObjectRequest.builder().bucket(bucket).key(fileName).build()));
-    URL url = objectRequest.url();
-    promise.complete(url.toString());
+
+    promise.complete(
+        s3Presigner
+            .presignGetObject(
+                builder ->
+                    builder
+                        .signatureDuration(Duration.ofMinutes(10))
+                        .getObjectRequest(
+                            GetObjectRequest.builder()
+                              .bucket(bucket)
+                              .key(fileName)
+                              .build()))
+            .url()
+            .toString());
     return promise.future();
   }
 
