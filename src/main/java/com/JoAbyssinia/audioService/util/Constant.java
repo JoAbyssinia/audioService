@@ -1,4 +1,4 @@
-package com.JoAbyssinia.audioService.worker.util;
+package com.JoAbyssinia.audioService.util;
 
 /**
  * @author Yohannes k Yimam

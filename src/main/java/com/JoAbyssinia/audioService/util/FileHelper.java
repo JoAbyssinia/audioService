@@ -1,4 +1,4 @@
-package com.JoAbyssinia.audioService.worker.util;
+package com.JoAbyssinia.audioService.util;
 
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;

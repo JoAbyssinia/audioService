@@ -41,7 +41,7 @@ public class AudioRouter {
                               .response()
                               .putHeader("content-type", "application/json")
                               .setStatusCode(200)
-                              .end(Json.encode(audio)))
+                              .end(Json.encode(ar)))
                   .onFailure(error -> context.fail(500, error));
             });
 
