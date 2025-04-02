@@ -1,7 +1,9 @@
 package com.JoAbyssinia.audioService.eventBus;
 
 import com.JoAbyssinia.audioService.service.AudioService;
-import com.JoAbyssinia.audioService.worker.util.Constant;
+import com.JoAbyssinia.audioService.util.Constant;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -14,8 +16,8 @@ public class MetadataEventBus {
 
   Logger logger = LoggerFactory.getLogger(MetadataEventBus.class);
 
-  private EventBus eventBus;
-  private AudioService audioService;
+  private final EventBus eventBus;
+  private final AudioService audioService;
 
   public MetadataEventBus(EventBus eventBus, AudioService audioService) {
     this.eventBus = eventBus;
@@ -28,17 +30,29 @@ public class MetadataEventBus {
         .handler(
             event -> {
               JsonObject json = new JsonObject(event.body().toString());
-              Long id = json.getLong("id");
-              String title = json.getString("title");
-              String distinction = json.getString("distinction");
 
-              logger.info(
-                  "metadata update received id: "
-                      + id
-                      + " title: "
-                      + title
-                      + " distinction: "
-                      + distinction);
+              updateAudioStatus(json)
+                  .onSuccess(
+                      r ->
+                          logger.info(
+                              "Metadata updated to "
+                                  + json.getLong("id")
+                                  + " title: "
+                                  + json.getString("title")))
+                  .onFailure(err -> logger.error(err.getMessage()));
             });
+  }
+
+  private Future<Void> updateAudioStatus(JsonObject json) {
+    Promise<Void> promise = Promise.promise();
+    Long id = json.getLong("id");
+    String distinction = json.getString("distinction");
+
+    audioService
+        .update("completed", distinction, id)
+        .onSuccess(v -> promise.complete())
+        .onFailure(err -> promise.fail("audio update failed id: " + id));
+
+    return promise.future();
   }
 }

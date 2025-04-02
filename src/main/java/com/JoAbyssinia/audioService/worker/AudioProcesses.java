@@ -1,4 +1,4 @@
-package com.JoAbyssinia.audioService.worker.util;
+package com.JoAbyssinia.audioService.worker;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -14,9 +14,9 @@ import java.util.List;
 /**
  * @author Yohannes k Yimam
  */
-public class AudioUtil {
+public class AudioProcesses {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AudioUtil.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AudioProcesses.class);
 
   public static Future<Void> transcodeToM3u8(File source, File outputFile) throws IOException {
     Promise<Void> promise = Promise.promise();

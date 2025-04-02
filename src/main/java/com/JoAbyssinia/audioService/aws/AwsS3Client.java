@@ -1,5 +1,6 @@
 package com.JoAbyssinia.audioService.aws;
 
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -12,6 +13,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -41,33 +44,44 @@ public class AwsS3Client {
   public Future<Void> uploadFolderToS3(File folder, String s3FolderKey) {
     Promise<Void> promise = Promise.promise();
     if (!folder.exists() || !folder.isDirectory()) {
-      throw new IllegalArgumentException(
-          "Provided path is not a valid directory: " + folder.getAbsolutePath());
-    }
-
-    File[] files = folder.listFiles();
-    if (files == null) {
-      promise.fail(
+      return Future.failedFuture(
           new IllegalArgumentException(
               "Provided path is not a valid directory: " + folder.getAbsolutePath()));
     }
 
+    File[] files = folder.listFiles();
+    if (files == null) {
+      return Future.failedFuture(
+          new IllegalArgumentException(
+              "Provided path is not a valid directory: " + folder.getAbsolutePath()));
+    }
+
+    // Create a list to track all file upload futures
+    List<Future> uploadFutures = new ArrayList<>();
+
     for (File file : files) {
       if (file.isFile()) {
         String s3Key = s3FolderKey + file.getName(); // Maintain folder structure in S3
-        uploadAudioFileToS3(file.getAbsoluteFile(), s3Key)
-            .onFailure(
-                throwable -> {
-                  logger.error("upload failed for " + file.getAbsolutePath());
-                  promise.fail(throwable);
-                });
+        uploadFutures.add(uploadAudioFileToS3(file.getAbsoluteFile(), s3Key));
       } else if (file.isDirectory()) {
         // Recursively upload subdirectories
-        uploadFolderToS3(file, s3FolderKey + "/" + file.getName());
+        uploadFutures.add(uploadFolderToS3(file, s3FolderKey + "/" + file.getName()));
       }
     }
-    logger.info("Uploaded folder " + folder.getAbsolutePath() + " to S3 at " + s3FolderKey);
-    promise.complete();
+
+    CompositeFuture.all(uploadFutures)
+        .onSuccess(
+            result -> {
+              logger.info(
+                  "Uploaded folder " + folder.getAbsolutePath() + " to S3 at " + s3FolderKey);
+              promise.complete();
+            })
+        .onFailure(
+            throwable -> {
+              logger.error(
+                  "Failed to upload folder " + folder.getAbsolutePath() + " to S3", throwable);
+              promise.fail(throwable);
+            });
 
     return promise.future();
   }

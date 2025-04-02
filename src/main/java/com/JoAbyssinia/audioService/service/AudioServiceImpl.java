@@ -2,7 +2,7 @@ package com.JoAbyssinia.audioService.service;
 
 import com.JoAbyssinia.audioService.entity.Audio;
 import com.JoAbyssinia.audioService.repository.AudioMetadataRepository;
-import com.JoAbyssinia.audioService.worker.util.Constant;
+import com.JoAbyssinia.audioService.util.Constant;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;

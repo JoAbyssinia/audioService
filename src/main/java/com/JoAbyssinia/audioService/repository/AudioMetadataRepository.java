@@ -26,13 +26,8 @@ public class AudioMetadataRepository {
 
     // Modified query to return the generated ID
     String query =
-        "INSERT INTO audio (title, status, originalPath, streamPath) VALUES ($1, $2, $3, $4) RETURNING id";
-    Tuple params =
-        Tuple.of(
-            audio.getTitle(),
-            audio.getStatus() == null ? "uploaded" : audio.getStatus(),
-            audio.getOriginalPath(),
-            audio.getStreamPath());
+        "INSERT INTO audio (title, originalPath, streamPath) VALUES ($1, $2, $3) RETURNING id";
+    Tuple params = Tuple.of(audio.getTitle(), audio.getOriginalPath(), audio.getStreamPath());
 
     pool.preparedQuery(query)
         .execute(params)
@@ -63,7 +58,7 @@ public class AudioMetadataRepository {
 
     //  query's
     String selectQuery = "SELECT * FROM audio WHERE id = $1";
-    String updateQuery = "UPDATE audio SET status = $1, steampath =$2 WHERE id = $3";
+    String updateQuery = "UPDATE audio SET status = $1, streampath =$2 WHERE id = $3";
 
     // extract the audio
     pool.preparedQuery(selectQuery)
@@ -80,7 +75,7 @@ public class AudioMetadataRepository {
               audio.setTitle(row.getString("title"));
               audio.setStatus(newStatus);
               audio.setOriginalPath(row.getString("originalpath"));
-              audio.setStreamPath(row.getString("streampath"));
+              audio.setStreamPath(streamPath);
 
               // update
               return pool.preparedQuery(updateQuery)
