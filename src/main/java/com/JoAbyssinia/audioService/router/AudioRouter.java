@@ -1,7 +1,6 @@
 package com.JoAbyssinia.audioService.router;
 
 import com.JoAbyssinia.audioService.entity.Audio;
-import com.JoAbyssinia.audioService.repository.AudioRepository;
 import com.JoAbyssinia.audioService.service.AudioService;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
@@ -37,13 +36,13 @@ public class AudioRouter {
               audioService
                   .save(audio)
                   .onSuccess(
-                      ar -> context
-                          .response()
-                          .putHeader("content-type", "application/json")
-                          .setStatusCode(200)
-                          .end(Json.encode(audio)))
-                  .onFailure(
-                      error -> context.fail(500, error));
+                      ar ->
+                          context
+                              .response()
+                              .putHeader("content-type", "application/json")
+                              .setStatusCode(200)
+                              .end(Json.encode(audio)))
+                  .onFailure(error -> context.fail(500, error));
             });
 
     // update

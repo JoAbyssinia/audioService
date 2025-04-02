@@ -1,15 +1,17 @@
 package com.JoAbyssinia.audioService.verticle;
 
 import com.JoAbyssinia.audioService.config.PostgresConfig;
-import com.JoAbyssinia.audioService.repository.AudioRepository;
+import com.JoAbyssinia.audioService.eventBus.MetadataEventBus;
+import com.JoAbyssinia.audioService.repository.AudioMetadataRepository;
 import com.JoAbyssinia.audioService.router.AudioRouter;
+import com.JoAbyssinia.audioService.service.AudioService;
 import com.JoAbyssinia.audioService.service.AudioServiceImpl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Yohannes k Yimam
@@ -23,12 +25,16 @@ public class MetadataVerticle extends AbstractVerticle {
   public void start() throws Exception {
     // create event bus
     EventBus eventBus = vertx.eventBus();
-//   initialise classes
+    //   initialise classes
     PostgresConfig postgresConfig = new PostgresConfig(vertx);
-    AudioRepository audioRepository = new AudioRepository(postgresConfig.getPool());
-    AudioServiceImpl audioService = new AudioServiceImpl(eventBus ,audioRepository);
+    AudioMetadataRepository audioMetadataRepository =
+        new AudioMetadataRepository(postgresConfig.getPool());
+    AudioService audioService = new AudioServiceImpl(eventBus, audioMetadataRepository);
 
+    // create event bus listener
+    new MetadataEventBus(eventBus, audioService).evenBus();
 
+    // router
     Router router = new AudioRouter(vertx, audioService).getRouter();
     vertx
         .createHttpServer()

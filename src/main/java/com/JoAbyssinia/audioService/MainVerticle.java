@@ -1,6 +1,6 @@
 package com.JoAbyssinia.audioService;
 
-import com.JoAbyssinia.audioService.verticle.AudioSegmentationWorkerVerticle;
+import com.JoAbyssinia.audioService.verticle.AudioTranscodeWorkerVerticle;
 import com.JoAbyssinia.audioService.verticle.MetadataVerticle;
 import io.vertx.core.*;
 import io.vertx.core.impl.logging.Logger;
@@ -13,9 +13,12 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
 
+    DeploymentOptions worker = new DeploymentOptions().setThreadingModel(ThreadingModel.WORKER);
+    DeploymentOptions instance = new DeploymentOptions().setInstances(1);
+
     Future.all(
-            deployHelper(MetadataVerticle.class.getName()),
-            deployHelper(AudioSegmentationWorkerVerticle.class.getName()))
+            deployHelper(MetadataVerticle.class.getName(), instance),
+            deployHelper(AudioTranscodeWorkerVerticle.class.getName(), worker))
         .onComplete(
             result -> {
               if (result.succeeded()) {
@@ -28,11 +31,11 @@ public class MainVerticle extends AbstractVerticle {
             });
   }
 
-  private Future<Void> deployHelper(String name) {
+  private Future<Void> deployHelper(String name, DeploymentOptions deploymentOptions) {
     Promise<Void> promise = Promise.promise();
 
     vertx
-        .deployVerticle(name)
+        .deployVerticle(name, deploymentOptions)
         .onSuccess(
             id -> {
               logger.info("Deployed verticle " + name);

@@ -12,12 +12,12 @@ import java.util.List;
 /**
  * @author Yohannes k Yimam
  */
-public class AudioRepository {
+public class AudioMetadataRepository {
 
-  private static final Logger logger = LoggerFactory.getLogger(AudioRepository.class);
+  private static final Logger logger = LoggerFactory.getLogger(AudioMetadataRepository.class);
   private final SqlClient pool;
 
-  public AudioRepository(SqlClient pool) {
+  public AudioMetadataRepository(SqlClient pool) {
     this.pool = pool;
   }
 
