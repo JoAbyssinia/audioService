@@ -9,7 +9,6 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -20,7 +19,6 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 /**
  * @author Yohannes k Yimam
@@ -188,10 +186,7 @@ public class AwsS3Client {
                     builder
                         .signatureDuration(Duration.ofMinutes(10))
                         .getObjectRequest(
-                            GetObjectRequest.builder()
-                              .bucket(bucket)
-                              .key(fileName)
-                              .build()))
+                            GetObjectRequest.builder().bucket(bucket).key(fileName).build()))
             .url()
             .toString());
     return promise.future();

@@ -28,7 +28,7 @@ public class AudioTranscodeWorkerVerticle extends AbstractVerticle {
     S3Presigner s3Presigner = S3Config.getS3Presigner();
     // aws client
     AwsS3Client awsS3Client = new AwsS3Client(vertx, s3Client, s3Presigner);
-//    awsS3Client.listFiles();
+    //    awsS3Client.listFiles();
     // audio transcoder service
     AudioTransCoderService audioTransCoderService = new AudioTransCoderServiceImpl(awsS3Client);
     // create event bus listener
