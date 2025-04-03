@@ -1,0 +1,36 @@
+name: Release on Merge
+
+on:
+  push:
+    branches: 
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get latest tag
+        id: get_version
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $latest_tag"
+          latest_version=${latest_tag#v}
+          IFS='.' read -r major minor patch <<< "$latest_version"
+          new_version="v$major.$((patch+1)).0"
+          echo "new_version=$new_version" >> $GITHUB_ENV
+          echo "New version: $new_version"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.new_version }}
+          release_name: Release ${{ env.new_version }}
+          body: "Automatic release for new changes merged into main."
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
