@@ -12,6 +12,7 @@ import com.JoAbyssinia.audioService.service.AudioTransCoderService;
 import com.JoAbyssinia.audioService.service.AudioTransCoderServiceImpl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
@@ -46,10 +47,12 @@ public class MetadataVerticle extends AbstractVerticle {
 
     // router
     Router router = new AudioRouter(vertx, audioService).getRouter();
+    HttpServerOptions httpServerOptions = new HttpServerOptions();
+    httpServerOptions.setHost("0.0.0.0").setPort(8888);
     vertx
-        .createHttpServer()
+        .createHttpServer(httpServerOptions)
         .requestHandler(router)
-        .listen(8888)
+        .listen()
         .onComplete(
             http -> {
               if (http.succeeded()) {
