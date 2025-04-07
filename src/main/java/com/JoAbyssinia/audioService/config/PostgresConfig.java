@@ -11,11 +11,11 @@ import io.vertx.sqlclient.SqlClient;
  */
 public class PostgresConfig {
 
-  private static final String host = "localhost";
-  private static final int port = 5432;
-  private static final String username = "example";
-  private static final String password = "example";
-  private static final String database = "postgres";
+  private static final String HOST = System.getenv().getOrDefault("POSTGRES_HOST", "localhost");
+  private static final String PORT = System.getenv().getOrDefault("POSTGRES_HOST", "5432");
+  private static final String USERNAME = System.getenv().getOrDefault("POSTGRES_USERNAME", "example");
+  private static final String PASSWORD = System.getenv().getOrDefault("POSTGRES_PASSWORD", "example");
+  private static final String DATABASE = System.getenv().getOrDefault("POSTGRES_DATABASE", "postgres");
 
   private final Vertx vertx;
   private volatile SqlClient pool;
@@ -30,11 +30,11 @@ public class PostgresConfig {
         if (pool == null) { // Double-checked locking
           PgConnectOptions connectOptions =
               new PgConnectOptions()
-                  .setHost(host)
-                  .setPort(port)
-                  .setDatabase(database)
-                  .setUser(username)
-                  .setPassword(password)
+                  .setHost(HOST)
+                  .setPort(Integer.parseInt(PORT))
+                  .setDatabase(DATABASE)
+                  .setUser(USERNAME)
+                  .setPassword(PASSWORD)
                   .setSsl(false)
                   .setConnectTimeout(5000);
 
