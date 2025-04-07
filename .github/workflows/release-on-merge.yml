@@ -32,7 +32,14 @@ jobs:
           new_version="v$major.$((patch+1)).0"
           echo "new_version=$new_version" >> $GITHUB_ENV
           echo "New version: $new_version"
-      
+          
+      - name: Create and push new tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ env.new_version }}
+          git push origin ${{ env.new_version }}
+          
       - name: Build with Maven
         run: mvn -B package --file pom.xml
           
