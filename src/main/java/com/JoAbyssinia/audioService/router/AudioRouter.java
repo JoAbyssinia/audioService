@@ -99,6 +99,11 @@ public class AudioRouter {
                       })
                   .onFailure(error -> context.fail(500, error));
             });
+    router
+      .get("/health")
+      .handler(context -> {
+        context.response().setStatusCode(200).end("OK");
+      });
     return router;
   }
 }
