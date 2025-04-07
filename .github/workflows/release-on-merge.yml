@@ -39,7 +39,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-          target/*.jar 
+            target/*.jar 
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
     
