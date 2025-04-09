@@ -4,6 +4,9 @@ import com.JoAbyssinia.audioService.aws.AwsS3Client;
 import com.JoAbyssinia.audioService.config.PostgresConfig;
 import com.JoAbyssinia.audioService.config.S3Config;
 import com.JoAbyssinia.audioService.eventBus.MetadataEventBus;
+import com.JoAbyssinia.audioService.interceptor.ErrorInterceptor;
+import com.JoAbyssinia.audioService.interceptor.LogInterceptor;
+import com.JoAbyssinia.audioService.interceptor.MetricsInterceptor;
 import com.JoAbyssinia.audioService.repository.AudioMetadataRepository;
 import com.JoAbyssinia.audioService.router.AudioRouter;
 import com.JoAbyssinia.audioService.service.AudioService;
@@ -39,14 +42,21 @@ public class MetadataVerticle extends AbstractVerticle {
     AwsS3Client awsS3Client =
         new AwsS3Client(vertx, S3Config.getS3AsyncClient(), S3Config.getS3Presigner());
     AudioTransCoderService audioTransCoderService = new AudioTransCoderServiceImpl(awsS3Client);
+
     AudioService audioService =
         new AudioServiceImpl(eventBus, audioMetadataRepository, audioTransCoderService);
+    // interceptors
+    LogInterceptor logInterceptor = new LogInterceptor();
+    ErrorInterceptor errorInterceptor = new ErrorInterceptor();
+    MetricsInterceptor metricsInterceptor = new MetricsInterceptor();
 
     // create event bus listener
     new MetadataEventBus(eventBus, audioService).evenBus();
 
     // router
-    Router router = new AudioRouter(vertx, audioService).getRouter();
+    Router router =
+        new AudioRouter(vertx, audioService, logInterceptor, errorInterceptor, metricsInterceptor)
+            .getRouter();
     HttpServerOptions httpServerOptions = new HttpServerOptions();
     httpServerOptions.setHost("0.0.0.0").setPort(8888);
     vertx

@@ -13,9 +13,12 @@ public class PostgresConfig {
 
   private static final String HOST = System.getenv().getOrDefault("POSTGRES_HOST", "localhost");
   private static final String PORT = System.getenv().getOrDefault("POSTGRES_PORT", "5432");
-  private static final String USERNAME = System.getenv().getOrDefault("POSTGRES_USERNAME", "example");
-  private static final String PASSWORD = System.getenv().getOrDefault("POSTGRES_PASSWORD", "example");
-  private static final String DATABASE = System.getenv().getOrDefault("POSTGRES_DATABASE", "postgres");
+  private static final String USERNAME =
+      System.getenv().getOrDefault("POSTGRES_USERNAME", "example");
+  private static final String PASSWORD =
+      System.getenv().getOrDefault("POSTGRES_PASSWORD", "example");
+  private static final String DATABASE =
+      System.getenv().getOrDefault("POSTGRES_DATABASE", "postgres");
 
   private final Vertx vertx;
   private volatile SqlClient pool;

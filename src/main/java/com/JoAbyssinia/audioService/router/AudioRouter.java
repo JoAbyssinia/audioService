@@ -1,11 +1,12 @@
 package com.JoAbyssinia.audioService.router;
 
 import com.JoAbyssinia.audioService.entity.Audio;
+import com.JoAbyssinia.audioService.interceptor.ErrorInterceptor;
+import com.JoAbyssinia.audioService.interceptor.LogInterceptor;
+import com.JoAbyssinia.audioService.interceptor.MetricsInterceptor;
 import com.JoAbyssinia.audioService.service.AudioService;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
@@ -18,10 +19,21 @@ public class AudioRouter {
 
   private final Vertx vertx;
   private final AudioService audioService;
+  private final LogInterceptor logInterceptor;
+  private final ErrorInterceptor errorInterceptor;
+  private final MetricsInterceptor metricsInterceptor;
 
-  public AudioRouter(Vertx vertx, AudioService audioService) {
+  public AudioRouter(
+      Vertx vertx,
+      AudioService audioService,
+      LogInterceptor logInterceptor,
+      ErrorInterceptor errorInterceptor,
+      MetricsInterceptor metricsInterceptor) {
     this.vertx = vertx;
     this.audioService = audioService;
+    this.logInterceptor = logInterceptor;
+    this.errorInterceptor = errorInterceptor;
+    this.metricsInterceptor = metricsInterceptor;
   }
 
   public Router getRouter() {
@@ -42,6 +54,13 @@ public class AudioRouter {
                         HttpMethod.OPTIONS))
                 .allowedHeaders(Set.of("Authorization", "Content-Type")));
 
+    // add interceptors
+    router
+        .route()
+        .handler(logInterceptor::interceptor)
+        .handler(errorInterceptor::interceptor)
+        .handler(metricsInterceptor::interceptor);
+
     //    save
     router
         .post("/audio/save")
@@ -52,6 +71,7 @@ public class AudioRouter {
               audio.setOriginalPath(context.queryParams().get("originalPath"));
 
               audioService
+                  .setContext(context)
                   .save(audio)
                   .onSuccess(
                       ar ->
@@ -59,7 +79,7 @@ public class AudioRouter {
                               .response()
                               .putHeader("content-type", "application/json")
                               .setStatusCode(200)
-                              .end(Json.encode(ar)))
+                              .end(ar))
                   .onFailure(error -> context.fail(500, error));
             });
 
@@ -70,6 +90,7 @@ public class AudioRouter {
         .handler(
             context ->
                 audioService
+                    .setContext(context)
                     .findAll()
                     .onSuccess(
                         audioList ->
@@ -77,7 +98,7 @@ public class AudioRouter {
                                 .response()
                                 .putHeader("content-type", "application/json")
                                 .setStatusCode(200)
-                                .end(Json.encode(audioList)))
+                                .end(audioList))
                     .onFailure(error -> context.fail(500, error)));
 
     router
@@ -86,24 +107,25 @@ public class AudioRouter {
             context -> {
               String fileName = context.queryParams().get("fileName");
               audioService
+                  .setContext(context)
                   .generatePresignedUrl(fileName)
                   .onSuccess(
                       presignedUrl -> {
-                        JsonObject resignedUrlJson = new JsonObject();
-                        resignedUrlJson.put("presignedUrl", presignedUrl);
                         context
                             .response()
                             .putHeader("content-type", "application/json")
                             .setStatusCode(200)
-                            .end((resignedUrlJson.encode()));
+                            .end((presignedUrl != null ? presignedUrl : ""));
                       })
                   .onFailure(error -> context.fail(500, error));
             });
+
     router
-      .get("/health")
-      .handler(context -> {
-        context.response().setStatusCode(200).end("OK");
-      });
+        .get("/health")
+        .handler(
+            context -> {
+              context.response().setStatusCode(200).end("OK");
+            });
     return router;
   }
 }
