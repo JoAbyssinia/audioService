@@ -25,5 +25,17 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  jenkins:
+    image: jenkins/jenkins:lts
+    privileged: true
+    container_name: jenkins
+    ports:
+      - 8080:8080
+      - 50000:50000
+    user: root
+    volumes:
+      - "${JENKINS_VOLUME_DIR:-./volume}:/var/lib/jenkins"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
 volumes:
   pgdata:
