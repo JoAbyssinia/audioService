@@ -10,7 +10,7 @@ import java.io.File;
 public class FileHelper {
   static Logger logger = LoggerFactory.getLogger(FileHelper.class);
 
-  public static void deleteTempFolder(File fine) {
-    fine.deleteOnExit();
+  public static void deleteTempFolder(File file) {
+    file.deleteOnExit();
   }
 }
