@@ -138,7 +138,7 @@ public class AwsS3Client {
                   return;
                 }
 
-                // Write file using Vert.x async file system (Non-blocking)
+                // Write a file using Vert.x async file system (Non-blocking)
                 vertx
                     .fileSystem()
                     .writeFile(tempFilePath.toString(), Buffer.buffer(responseBytes.asByteArray()))
@@ -192,7 +192,7 @@ public class AwsS3Client {
     return promise.future();
   }
 
-  public Future<Void> listFiles() {
+  private Future<Void> listFiles() {
     Promise<Void> promise = Promise.promise();
     ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).build();
     s3AsyncClient

@@ -45,16 +45,22 @@ public class AudioRouter {
         .route()
         .handler(
             CorsHandler.create()
-              .addOrigin("*")
-              .allowCredentials(true)
-              .allowedMethods(
+                .addOrigin("*")
+                .allowCredentials(true)
+                .allowedMethods(
                     Set.of(
                         HttpMethod.GET,
                         HttpMethod.POST,
                         HttpMethod.PUT,
                         HttpMethod.DELETE,
                         HttpMethod.OPTIONS))
-                .allowedHeaders(Set.of("Authorization", "Content-Type", "Accept", "Origin", "Access-Control-Allow-Origin")));
+                .allowedHeaders(
+                    Set.of(
+                        "Authorization",
+                        "Content-Type",
+                        "Accept",
+                        "Origin",
+                        "Access-Control-Allow-Origin")));
 
     // add interceptors
     router
