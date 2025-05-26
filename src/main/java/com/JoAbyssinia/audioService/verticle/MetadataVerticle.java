@@ -34,17 +34,7 @@ public class MetadataVerticle extends AbstractVerticle {
     // create event bus
     EventBus eventBus = vertx.eventBus();
     // initialise classes
-    PostgresConfig postgresConfig = new PostgresConfig(vertx);
-    AudioMetadataRepository audioMetadataRepository =
-        new AudioMetadataRepository(postgresConfig.getPool());
-
-    // for pre signed generator.
-    AwsS3Client awsS3Client =
-        new AwsS3Client(vertx, S3Config.getS3AsyncClient(), S3Config.getS3Presigner());
-    AudioTransCoderService audioTransCoderService = new AudioTransCoderServiceImpl(awsS3Client);
-
-    AudioService audioService =
-        new AudioServiceImpl(eventBus, audioMetadataRepository, audioTransCoderService);
+    AudioService audioService = getAudioService(eventBus);
     // interceptors
     LogInterceptor logInterceptor = new LogInterceptor();
     ErrorInterceptor errorInterceptor = new ErrorInterceptor();
@@ -72,5 +62,18 @@ public class MetadataVerticle extends AbstractVerticle {
                 logger.error("Server failed to start on port 8888", http.cause());
               }
             });
+  }
+
+  private AudioService getAudioService(EventBus eventBus) {
+    PostgresConfig postgresConfig = new PostgresConfig(vertx);
+    AudioMetadataRepository audioMetadataRepository =
+        new AudioMetadataRepository(postgresConfig.getPool());
+
+    // for pre-signed generator.
+    AwsS3Client awsS3Client =
+        new AwsS3Client(vertx, S3Config.getS3AsyncClient(), S3Config.getS3Presigner());
+    AudioTransCoderService audioTransCoderService = new AudioTransCoderServiceImpl(awsS3Client);
+
+    return new AudioServiceImpl(eventBus, audioMetadataRepository, audioTransCoderService);
   }
 }

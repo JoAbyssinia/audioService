@@ -13,7 +13,8 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
 
-    DeploymentOptions worker = new DeploymentOptions().setInstances(5).setThreadingModel(ThreadingModel.WORKER);
+    DeploymentOptions worker =
+        new DeploymentOptions().setInstances(5).setThreadingModel(ThreadingModel.WORKER);
     DeploymentOptions instance = new DeploymentOptions().setInstances(1);
 
     Future.all(
