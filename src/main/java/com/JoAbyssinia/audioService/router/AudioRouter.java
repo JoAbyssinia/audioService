@@ -96,7 +96,7 @@ public class AudioRouter {
     // update
 
     router
-        .get("/audio/list")
+        .get("/playlists/tracks")
         .handler(
             context ->
                 audioService
@@ -115,11 +115,11 @@ public class AudioRouter {
         .get("/audio/presigned")
         .handler(
             context -> {
-              String fileName = context.queryParams().get("fileName");
+              String streamPath = context.queryParams().get("streamPath");
               String durationStr = context.queryParams().get("duration");
               audioService
                   .setContext(context)
-                  .generatePresignedUrl(fileName, Long.parseLong(durationStr))
+                  .generatePresignedUrl(streamPath, Long.parseLong(durationStr))
                   .onSuccess(
                       presignedUrl ->
                           context

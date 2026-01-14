@@ -83,14 +83,14 @@ public class AudioMetadataRepository {
               audio.setId(row.getLong("id"));
               audio.setTitle(row.getString("title"));
               audio.setArtist(row.getString("artist"));
-              audio.setStatus(newStatus);
-              audio.setDuration(Long.parseLong(row.getString("duration")));
+              audio.setStatus(AudioStatus.valueOf(row.getString("status")));
+              audio.setDuration(row.getLong("duration"));
               audio.setOriginalPath(row.getString("originalpath"));
               audio.setStreamPath(streamPath);
 
               // update
               return pool.preparedQuery(updateQuery)
-                  .execute(Tuple.of(newStatus, streamPath, audioId))
+                  .execute(Tuple.of(newStatus.toString(), streamPath, audioId))
                   .map(updateResult -> audio);
             })
         .onSuccess(promise::complete)

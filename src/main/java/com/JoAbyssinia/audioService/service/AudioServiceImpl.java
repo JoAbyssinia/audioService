@@ -53,6 +53,7 @@ public class AudioServiceImpl implements AudioService {
               JsonObject json = new JsonObject();
               json.put("id", res.getId());
               json.put("title", res.getTitle());
+              json.put("artist", res.getArtist());
               // publish save audio
               this.eventBus.send(Constant.AUDIO_TRANSCODE_ADDRESS, json.toString());
 
@@ -111,7 +112,7 @@ public class AudioServiceImpl implements AudioService {
     audios.onSuccess(
         result -> {
           try {
-            var json = JsonUtil.listToJson(result);
+            var json = JsonUtil.listToTrackDTOJson(result);
             logMap.put("audios", json);
             promise.complete(json);
           } catch (JsonProcessingException e) {

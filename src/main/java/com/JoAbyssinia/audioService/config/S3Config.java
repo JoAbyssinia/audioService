@@ -12,7 +12,9 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 public class S3Config {
 
   private static final String ENDPOINT =
-      System.getenv().getOrDefault("AWS_S3_ENDPOINT", "http://localhost:4566");
+      System.getenv()
+          .getOrDefault(
+              "AWS_S3_ENDPOINT", "http://localhost:4566"); // use 10.0.2.2 for android emulator
   private static final String ACCESS_KEY_ID =
       System.getenv().getOrDefault("AWS_ACCESS_KEY_ID", "112233445566");
   private static final String ACCESS_KEY_SECRET =

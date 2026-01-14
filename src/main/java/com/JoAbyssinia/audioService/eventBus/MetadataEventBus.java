@@ -39,7 +39,9 @@ public class MetadataEventBus {
                               "Metadata updated to "
                                   + json.getLong("id")
                                   + " title: "
-                                  + json.getString("title")))
+                                  + json.getString("title")
+                                  + " artist: "
+                                  + json.getString("artist")))
                   .onFailure(err -> logger.error(err.getMessage()));
             });
   }

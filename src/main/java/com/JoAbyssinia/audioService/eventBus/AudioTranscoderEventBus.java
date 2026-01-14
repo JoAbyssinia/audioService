@@ -42,10 +42,12 @@ public class AudioTranscoderEventBus {
             event -> {
               JsonObject json = new JsonObject(event.body().toString());
               Long id = json.getLong("id");
-              String title = json.getString("title");
+              String title = json.containsKey("title") ? json.getString("title") : "title_unknown";
+              String artist =
+                  json.containsKey("artist") ? json.getString("artist") : "artist_unknown";
 
               try {
-                transcodeAudio(vertx, id, title)
+                transcodeAudio(vertx, id, title, artist)
                     .onSuccess(result -> logger.info("Audio transcode successfully"))
                     .onFailure(throwable -> logger.error("Audio transcode failed"));
               } catch (IOException e) {
@@ -56,16 +58,18 @@ public class AudioTranscoderEventBus {
             });
   }
 
-  private Future<Void> transcodeAudio(Vertx vertx, Long id, String title) throws IOException {
+  private Future<Void> transcodeAudio(Vertx vertx, Long id, String title, String artist)
+      throws IOException {
     Promise<Void> promise = Promise.promise();
-
+    // create unique file name
+    String fileName = title + '_' + artist;
     // Temporary output location
-    File outputFile = Files.createTempDirectory("output_" + title).toFile();
+    File outputFile = Files.createTempDirectory("output_" + fileName).toFile();
     AtomicReference<File> downloadedFile = new AtomicReference<>();
 
     // Start the chain with downloadFile
     audioTransCoderService
-        .downloadFile(title)
+        .downloadFile(fileName)
         .compose(
             file -> {
               // Store reference to downloaded file for cleanup
@@ -87,7 +91,7 @@ public class AudioTranscoderEventBus {
         .compose(
             v -> {
               // Create folder in S3 bucket
-              return audioTransCoderService.createFolderS3(title);
+              return audioTransCoderService.createFolderS3(fileName);
             })
         .compose(
             s3folderName -> {
@@ -120,10 +124,11 @@ public class AudioTranscoderEventBus {
                   new JsonObject()
                       .put("id", id)
                       .put("title", title)
+                      .put("artist", artist)
                       .put("distinction", transcodeFileName);
 
               eventBus.send(Constant.METADATA_UPDATE_ADDRESS, jsonMsg);
-              logger.info("Transcoding of " + title + " completed successfully");
+              logger.info("Transcoding of " + fileName + " completed successfully");
               return Future.succeededFuture();
             })
         .onComplete(
