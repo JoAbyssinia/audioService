@@ -14,5 +14,5 @@ public interface AudioTransCoderService {
 
   Future<String> createFolderS3(String folderName);
 
-  Future<String> generateResignedUrl(String fileName);
+  Future<String> generateResignedUrl(String fileName, long duration);
 }

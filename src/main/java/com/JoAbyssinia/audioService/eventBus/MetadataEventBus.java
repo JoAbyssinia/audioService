@@ -1,5 +1,6 @@
 package com.JoAbyssinia.audioService.eventBus;
 
+import com.JoAbyssinia.audioService.entity.AudioStatus;
 import com.JoAbyssinia.audioService.service.AudioService;
 import com.JoAbyssinia.audioService.util.Constant;
 import io.vertx.core.Future;
@@ -49,7 +50,7 @@ public class MetadataEventBus {
     String distinction = json.getString("distinction");
 
     audioService
-        .update("completed", distinction, id)
+        .update(AudioStatus.COMPLETED, distinction, id)
         .onSuccess(v -> promise.complete())
         .onFailure(err -> promise.fail("audio update failed id: " + id));
 

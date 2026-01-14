@@ -14,9 +14,9 @@ public class PostgresConfig {
   private static final String HOST = System.getenv().getOrDefault("POSTGRES_HOST", "localhost");
   private static final String PORT = System.getenv().getOrDefault("POSTGRES_PORT", "5432");
   private static final String USERNAME =
-      System.getenv().getOrDefault("POSTGRES_USERNAME", "example");
+      System.getenv().getOrDefault("POSTGRES_USERNAME", "username");
   private static final String PASSWORD =
-      System.getenv().getOrDefault("POSTGRES_PASSWORD", "example");
+      System.getenv().getOrDefault("POSTGRES_PASSWORD", "password");
   private static final String DATABASE =
       System.getenv().getOrDefault("POSTGRES_DATABASE", "postgres");
 
@@ -54,5 +54,11 @@ public class PostgresConfig {
     }
 
     return pool;
+  }
+
+  public void closePool() {
+    if (pool != null) {
+      pool.close();
+    }
   }
 }

@@ -77,6 +77,8 @@ public class AudioRouter {
               Audio audio = new Audio();
               audio.setTitle(context.queryParams().get("title"));
               audio.setOriginalPath(context.queryParams().get("originalPath"));
+              audio.setArtist(context.queryParams().get("artist"));
+              audio.setDuration(Long.parseLong(context.queryParams().get("duration")));
 
               audioService
                   .setContext(context)
@@ -114,26 +116,21 @@ public class AudioRouter {
         .handler(
             context -> {
               String fileName = context.queryParams().get("fileName");
+              String durationStr = context.queryParams().get("duration");
               audioService
                   .setContext(context)
-                  .generatePresignedUrl(fileName)
+                  .generatePresignedUrl(fileName, Long.parseLong(durationStr))
                   .onSuccess(
-                      presignedUrl -> {
-                        context
-                            .response()
-                            .putHeader("content-type", "application/json")
-                            .setStatusCode(200)
-                            .end((presignedUrl != null ? presignedUrl : ""));
-                      })
+                      presignedUrl ->
+                          context
+                              .response()
+                              .putHeader("content-type", "application/json")
+                              .setStatusCode(200)
+                              .end((presignedUrl != null ? presignedUrl : "")))
                   .onFailure(error -> context.fail(500, error));
             });
 
-    router
-        .get("/health")
-        .handler(
-            context -> {
-              context.response().setStatusCode(200).end("OK");
-            });
+    router.get("/health").handler(context -> context.response().setStatusCode(200).end("OK"));
     return router;
   }
 }

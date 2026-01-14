@@ -13,8 +13,11 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
 
+    int workerInstances = config().getInteger("workerInstances", 5);
     DeploymentOptions worker =
-        new DeploymentOptions().setInstances(5).setThreadingModel(ThreadingModel.WORKER);
+        new DeploymentOptions()
+            .setInstances(workerInstances)
+            .setThreadingModel(ThreadingModel.WORKER);
     DeploymentOptions instance = new DeploymentOptions().setInstances(1);
 
     Future.all(
@@ -32,19 +35,25 @@ public class MainVerticle extends AbstractVerticle {
             });
   }
 
-  private Future<Void> deployHelper(String name, DeploymentOptions deploymentOptions) {
+  @Override
+  public void stop(Promise<Void> stopPromise) throws Exception {
+    super.stop(stopPromise);
+    logger.info("Audio service stopped");
+  }
+
+  private Future<Void> deployHelper(String className, DeploymentOptions deploymentOptions) {
     Promise<Void> promise = Promise.promise();
 
     vertx
-        .deployVerticle(name, deploymentOptions)
+        .deployVerticle(className, deploymentOptions)
         .onSuccess(
             id -> {
-              logger.info("Deployed verticle " + name);
+              logger.info("Deployed verticle " + className);
               promise.complete();
             })
         .onFailure(
             err -> {
-              logger.error("Failed to deploy verticle " + name, err);
+              logger.error("Failed to deploy verticle " + className, err);
               promise.fail(err);
             });
 

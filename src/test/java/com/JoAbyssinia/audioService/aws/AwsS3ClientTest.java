@@ -175,6 +175,7 @@ public class AwsS3ClientTest {
   void generatePresignedUrlSuccess(VertxTestContext testContext) throws MalformedURLException {
     // Define test values
     String fileName = "test-file.m3u8";
+    long duration = 100L;
     String expectedUrl = "https://test-bucket.s3.amazonaws.com/test-file.m3u8?signature=test";
 
     // create mock presignedGetObjectRequest
@@ -185,7 +186,7 @@ public class AwsS3ClientTest {
 
     // Test the URL generation
     awsS3Client
-        .generateResignedUrl(fileName)
+        .generateResignedUrl(fileName, duration)
         .onComplete(
             testContext.succeeding(
                 result -> {

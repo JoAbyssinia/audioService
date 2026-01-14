@@ -60,16 +60,20 @@ public class AudioTransCoderServiceImpl implements AudioTransCoderService {
     return promise.future();
   }
 
-  public Future<String> generateResignedUrl(String fileName) {
+  public Future<String> generateResignedUrl(String fileName, long duration) {
     Promise<String> promise = Promise.promise();
 
     if (fileName == null) {
       logger.error("fileName is null");
       promise.fail("fileName is null");
     }
+    if (duration <= 0) {
+      logger.error("duration is invalid");
+      promise.fail("duration is invalid");
+    }
 
     awsS3Client
-        .generateResignedUrl(fileName)
+        .generateResignedUrl(fileName, duration)
         .onSuccess(promise::complete)
         .onFailure(
             err -> {

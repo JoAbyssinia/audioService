@@ -1,6 +1,7 @@
 package com.JoAbyssinia.audioService.service;
 
 import com.JoAbyssinia.audioService.entity.Audio;
+import com.JoAbyssinia.audioService.entity.AudioStatus;
 import com.JoAbyssinia.audioService.repository.AudioMetadataRepository;
 import com.JoAbyssinia.audioService.util.Constant;
 import com.JoAbyssinia.audioService.util.JsonUtil;
@@ -40,6 +41,10 @@ public class AudioServiceImpl implements AudioService {
   public Future<String> save(Audio audio) {
     Promise<String> promise = Promise.promise();
     Map<String, String> logMap = getContext().get("logs");
+
+    // set initial status to pending
+    audio.setStatus(AudioStatus.PENDING);
+
     Future<Audio> audioSave = audioMetadataRepository.save(audio);
 
     audioSave
@@ -69,17 +74,17 @@ public class AudioServiceImpl implements AudioService {
   }
 
   @Override
-  public Future<Audio> update(String newStatus, String streamPath, Long audioId) {
+  public Future<Audio> update(AudioStatus newStatus, String streamPath, Long audioId) {
     return audioMetadataRepository.update(newStatus, streamPath, audioId);
   }
 
   @Override
-  public Future<String> generatePresignedUrl(String fileName) {
+  public Future<String> generatePresignedUrl(String fileName, long duration) {
     Promise<String> promise = Promise.promise();
     Map<String, String> logMap = getContext().get("logs");
 
     audioTransCoderService
-        .generateResignedUrl(fileName)
+        .generateResignedUrl(fileName, duration)
         .onSuccess(
             result -> {
               JsonObject resignedUrlJson = new JsonObject();

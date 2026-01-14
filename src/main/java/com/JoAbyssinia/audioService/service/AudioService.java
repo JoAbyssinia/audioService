@@ -1,6 +1,7 @@
 package com.JoAbyssinia.audioService.service;
 
 import com.JoAbyssinia.audioService.entity.Audio;
+import com.JoAbyssinia.audioService.entity.AudioStatus;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 
@@ -11,9 +12,9 @@ public interface AudioService {
 
   Future<String> save(Audio audio);
 
-  Future<Audio> update(String newStatus, String streamPath, Long audioId);
+  Future<Audio> update(AudioStatus status, String streamPath, Long audioId);
 
-  Future<String> generatePresignedUrl(String fileName);
+  Future<String> generatePresignedUrl(String fileName, long duration);
 
   Future<String> findAll();
 

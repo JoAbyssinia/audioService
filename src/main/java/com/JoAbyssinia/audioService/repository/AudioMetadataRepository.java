@@ -1,6 +1,7 @@
 package com.JoAbyssinia.audioService.repository;
 
 import com.JoAbyssinia.audioService.entity.Audio;
+import com.JoAbyssinia.audioService.entity.AudioStatus;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.impl.logging.Logger;
@@ -8,6 +9,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.sqlclient.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Yohannes k Yimam
@@ -26,8 +28,15 @@ public class AudioMetadataRepository {
 
     // Modified query to return the generated ID
     String query =
-        "INSERT INTO audio (title, originalPath, streamPath) VALUES ($1, $2, $3) RETURNING id";
-    Tuple params = Tuple.of(audio.getTitle(), audio.getOriginalPath(), audio.getStreamPath());
+        "INSERT INTO audio (title, artist, duration, status, originalPath, streamPath) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id";
+    Tuple params =
+        Tuple.of(
+            audio.getTitle(),
+            audio.getArtist(),
+            audio.getDuration(),
+            audio.getStatus().toString(),
+            audio.getOriginalPath(),
+            audio.getStreamPath());
 
     pool.preparedQuery(query)
         .execute(params)
@@ -49,8 +58,8 @@ public class AudioMetadataRepository {
     return promise.future();
   }
 
-  public Future<Audio> update(String newStatus, String streamPath, Long audioId) {
-    if (audioId == null || newStatus == null || newStatus.isEmpty()) {
+  public Future<Audio> update(AudioStatus newStatus, String streamPath, Long audioId) {
+    if (audioId == null || newStatus == null) {
       return Future.failedFuture("Audio ID and status cannot be null or empty");
     }
 
@@ -73,7 +82,9 @@ public class AudioMetadataRepository {
               Audio audio = new Audio();
               audio.setId(row.getLong("id"));
               audio.setTitle(row.getString("title"));
+              audio.setArtist(row.getString("artist"));
               audio.setStatus(newStatus);
+              audio.setDuration(Long.parseLong(row.getString("duration")));
               audio.setOriginalPath(row.getString("originalpath"));
               audio.setStreamPath(streamPath);
 
@@ -93,7 +104,8 @@ public class AudioMetadataRepository {
   }
 
   public Future<List<Audio>> findAll() {
-    String query = "SELECT * FROM audio WHERE status = 'completed'";
+    String audioStatus = AudioStatus.COMPLETED.toString();
+    String query = "SELECT * FROM audio WHERE status = '" + audioStatus + "'";
 
     return pool.query(query)
         .execute()
@@ -105,7 +117,13 @@ public class AudioMetadataRepository {
                     Audio audio = new Audio();
                     audio.setId(row.getLong("id"));
                     audio.setTitle(row.getString("title"));
-                    audio.setStatus(row.getString("status"));
+                    audio.setArtist(row.getString("artist"));
+                    audio.setArtistId(Optional.ofNullable(row.getString("artistid")));
+                    audio.setAlbum(Optional.ofNullable(row.getString("album")));
+                    audio.setAlbumId(Optional.ofNullable(row.getString("albumid")));
+                    audio.setAlbumArtUrl(Optional.ofNullable(row.getString("albumarturl")));
+                    audio.setDuration(row.getLong("duration"));
+                    audio.setStatus(AudioStatus.valueOf(row.getString("status")));
                     audio.setOriginalPath(row.getString("originalpath"));
                     audio.setStreamPath(row.getString("streampath"));
                     audioList.add(audio);

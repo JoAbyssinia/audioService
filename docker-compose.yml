@@ -12,30 +12,30 @@ services:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
   postgres:
-    image: postgres:latest
+    image: postgres:17
     restart: always
     container_name: postgres_db
     shm_size: 128mb
     environment:
-      POSTGRES_USER: example
-      POSTGRES_PASSWORD: example
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: mydatabase
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
 
-  jenkins:
-    image: jenkins/jenkins:lts
-    privileged: true
-    container_name: jenkins
-    ports:
-      - 8080:8080
-      - 50000:50000
-    user: root
-    volumes:
-      - "${JENKINS_VOLUME_DIR:-./volume}:/var/lib/jenkins"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+#  jenkins:
+#    image: jenkins/jenkins:lts
+#    privileged: true
+#    container_name: jenkins
+#    ports:
+#      - 8080:8080
+#      - 50000:50000
+#    user: root
+#    volumes:
+#      - "${JENKINS_VOLUME_DIR:-./volume}:/var/lib/jenkins"
+#      - "/var/run/docker.sock:/var/run/docker.sock"
 
 volumes:
   pgdata:

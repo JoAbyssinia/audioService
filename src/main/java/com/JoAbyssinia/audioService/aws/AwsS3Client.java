@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -176,15 +177,18 @@ public class AwsS3Client {
     return promise.future();
   }
 
-  public Future<String> generateResignedUrl(String fileName) {
+  public Future<String> generateResignedUrl(String fileName, long milliseconds) {
     Promise<String> promise = Promise.promise();
+    // Convert milliseconds to minutes for the presign duration
+    // add extra two minute to avoid expiration during processing
+    long minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds) + 2;
 
     promise.complete(
         s3Presigner
             .presignGetObject(
                 builder ->
                     builder
-                        .signatureDuration(Duration.ofMinutes(10))
+                        .signatureDuration(Duration.ofMinutes(minutes))
                         .getObjectRequest(
                             GetObjectRequest.builder().bucket(bucket).key(fileName).build()))
             .url()
@@ -208,5 +212,10 @@ public class AwsS3Client {
             });
 
     return promise.future();
+  }
+
+  public void close() {
+    s3AsyncClient.close();
+    s3Presigner.close();
   }
 }
