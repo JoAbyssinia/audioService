@@ -1,5 +1,6 @@
 package com.JoAbyssinia.audioService.service;
 
+import com.JoAbyssinia.audioService.broker.KafkaClient;
 import com.JoAbyssinia.audioService.entity.Audio;
 import com.JoAbyssinia.audioService.entity.AudioStatus;
 import com.JoAbyssinia.audioService.repository.AudioMetadataRepository;
@@ -14,7 +15,6 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Yohannes k Yimam
@@ -26,21 +26,18 @@ public class AudioServiceImpl implements AudioService {
 
   private final AudioMetadataRepository audioMetadataRepository;
   private final EventBus eventBus;
-  private final AudioTransCoderService audioTransCoderService;
+  private final KafkaClient kafkaClient;
 
   public AudioServiceImpl(
-      EventBus eventBus,
-      AudioMetadataRepository audioMetadataRepository,
-      AudioTransCoderService audioTransCoderService) {
+      EventBus eventBus, AudioMetadataRepository audioMetadataRepository, KafkaClient kafkaClient) {
     this.audioMetadataRepository = audioMetadataRepository;
     this.eventBus = eventBus;
-    this.audioTransCoderService = audioTransCoderService;
+    this.kafkaClient = kafkaClient;
   }
 
   @Override
   public Future<String> save(Audio audio) {
     Promise<String> promise = Promise.promise();
-    Map<String, String> logMap = getContext().get("logs");
 
     // set initial status to pending
     audio.setStatus(AudioStatus.PENDING);
@@ -53,13 +50,13 @@ public class AudioServiceImpl implements AudioService {
               JsonObject json = new JsonObject();
               json.put("id", res.getId());
               json.put("title", res.getTitle());
-              json.put("artist", res.getArtist());
+              json.put("artistName", res.getArtistName());
+              json.put("originalPath", res.getOriginalPath());
               // publish save audio
               this.eventBus.send(Constant.AUDIO_TRANSCODE_ADDRESS, json.toString());
 
               try {
                 var response = JsonUtil.listToJson(List.of(res));
-                logMap.put("audio", response);
                 promise.complete(response);
               } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
@@ -67,7 +64,6 @@ public class AudioServiceImpl implements AudioService {
             })
         .onFailure(
             res -> {
-              logMap.put("error", res.toString());
               promise.fail(res);
             });
 
@@ -76,57 +72,30 @@ public class AudioServiceImpl implements AudioService {
 
   @Override
   public Future<Audio> update(AudioStatus newStatus, String streamPath, Long audioId) {
-    return audioMetadataRepository.update(newStatus, streamPath, audioId);
-  }
-
-  @Override
-  public Future<String> generatePresignedUrl(String fileName, long duration) {
-    Promise<String> promise = Promise.promise();
-    Map<String, String> logMap = getContext().get("logs");
-
-    audioTransCoderService
-        .generateResignedUrl(fileName, duration)
+    Promise<Audio> promise = Promise.promise();
+    audioMetadataRepository
+        .update(newStatus, streamPath, audioId)
         .onSuccess(
-            result -> {
-              JsonObject resignedUrlJson = new JsonObject();
-              resignedUrlJson.put("presignedUrl", result);
-
-              logMap.put("presigned-url", resignedUrlJson.toString());
-              promise.complete(resignedUrlJson.toString());
-            })
-        .onFailure(
-            err -> {
-              logMap.put("error", err.getMessage());
-              promise.fail(err);
+            audio -> {
+              promise.complete(audio);
+              // send message to kafka
+              kafkaClient
+                  .writeToTopic(Constant.PROCESSED_AUDIO_NOTIFICATIONS, audio)
+                  .onSuccess(
+                      v ->
+                          logger.info(
+                              "audio processed message sent to kafka for track id: "
+                                  + audio.getTrackId()))
+                  .onFailure(
+                      err ->
+                          logger.error(
+                              "failed to send audio processed message to kafka for track id: "
+                                  + audio.getTrackId()
+                                  + " due to "
+                                  + err.getMessage()));
             });
 
     return promise.future();
-  }
-
-  @Override
-  public Future<String> findAll() {
-    Promise<String> promise = Promise.promise();
-    Map<String, String> logMap = getContext().get("logs");
-
-    var audios = audioMetadataRepository.findAll();
-    audios.onSuccess(
-        result -> {
-          try {
-            var json = JsonUtil.listToTrackDTOJson(result);
-            logMap.put("audios", json);
-            promise.complete(json);
-          } catch (JsonProcessingException e) {
-            logMap.put("error", e.getMessage());
-            promise.fail(e);
-          }
-        });
-    return promise.future();
-  }
-
-  @Override
-  public AudioService setContext(RoutingContext context) {
-    this.context = context;
-    return this;
   }
 
   @Override

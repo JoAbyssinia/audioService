@@ -1,6 +1,5 @@
 package com.JoAbyssinia.audioService.aws;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -10,10 +9,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +25,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 /**
  * @author Yohannes k Yimam
@@ -131,7 +126,7 @@ public class AwsS3ClientTest {
             tempFile -> {
               // Test the download
               awsS3Client
-                  .downloadFile("test-file")
+                  .downloadFile("text/file.mp3", "test-file")
                   .onComplete(
                       testContext.succeeding(
                           result -> {
@@ -167,34 +162,6 @@ public class AwsS3ClientTest {
                   // verify the client is called
                   verify(s3AsyncClient, atLeastOnce())
                       .putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class));
-                  testContext.completeNow();
-                }));
-  }
-
-  @Test
-  void generatePresignedUrlSuccess(VertxTestContext testContext) throws MalformedURLException {
-    // Define test values
-    String fileName = "test-file.m3u8";
-    long duration = 100L;
-    String expectedUrl = "https://test-bucket.s3.amazonaws.com/test-file.m3u8?signature=test";
-
-    // create mock presignedGetObjectRequest
-    PresignedGetObjectRequest presignedRequest = mock(PresignedGetObjectRequest.class);
-    // mock the generateResignedURL behavior
-    when(presignedRequest.url()).thenReturn(URI.create(expectedUrl).toURL());
-    when(s3Presigner.presignGetObject(any(Consumer.class))).thenReturn(presignedRequest);
-
-    // Test the URL generation
-    awsS3Client
-        .generateResignedUrl(fileName, duration)
-        .onComplete(
-            testContext.succeeding(
-                result -> {
-                  // verify the result matches the expected URL
-                  assertEquals(expectedUrl, result);
-                  // Verify s3Presigner was called
-                  verify(s3Presigner).presignGetObject(any(Consumer.class));
-
                   testContext.completeNow();
                 }));
   }

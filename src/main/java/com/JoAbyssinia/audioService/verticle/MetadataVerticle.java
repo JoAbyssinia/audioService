@@ -1,8 +1,9 @@
 package com.JoAbyssinia.audioService.verticle;
 
-import com.JoAbyssinia.audioService.aws.AwsS3Client;
+import com.JoAbyssinia.audioService.broker.KafkaClient;
+import com.JoAbyssinia.audioService.broker.KafkaConsumerService;
+import com.JoAbyssinia.audioService.config.KafkaConfig;
 import com.JoAbyssinia.audioService.config.PostgresConfig;
-import com.JoAbyssinia.audioService.config.S3Config;
 import com.JoAbyssinia.audioService.eventBus.MetadataEventBus;
 import com.JoAbyssinia.audioService.interceptor.ErrorInterceptor;
 import com.JoAbyssinia.audioService.interceptor.LogInterceptor;
@@ -11,8 +12,6 @@ import com.JoAbyssinia.audioService.repository.AudioMetadataRepository;
 import com.JoAbyssinia.audioService.router.AudioRouter;
 import com.JoAbyssinia.audioService.service.AudioService;
 import com.JoAbyssinia.audioService.service.AudioServiceImpl;
-import com.JoAbyssinia.audioService.service.AudioTransCoderService;
-import com.JoAbyssinia.audioService.service.AudioTransCoderServiceImpl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpServerOptions;
@@ -33,15 +32,19 @@ public class MetadataVerticle extends AbstractVerticle {
   public void start() throws Exception {
     // create event bus
     EventBus eventBus = vertx.eventBus();
+    // kafka client
+    KafkaClient kafkaClient = new KafkaClient(vertx, KafkaConfig.getConfigs());
     // initialise classes
-    AudioService audioService = getAudioService(eventBus);
+    AudioService audioService = getAudioService(eventBus, kafkaClient);
+    // start kafka consumer
+    new KafkaConsumerService(kafkaClient, audioService).messageConsumer();
+    // create event bus listener
+    new MetadataEventBus(eventBus, audioService).evenBus();
+
     // interceptors
     LogInterceptor logInterceptor = new LogInterceptor();
     ErrorInterceptor errorInterceptor = new ErrorInterceptor();
     MetricsInterceptor metricsInterceptor = new MetricsInterceptor();
-
-    // create event bus listener
-    new MetadataEventBus(eventBus, audioService).evenBus();
 
     // router
     Router router =
@@ -64,16 +67,11 @@ public class MetadataVerticle extends AbstractVerticle {
             });
   }
 
-  private AudioService getAudioService(EventBus eventBus) {
+  private AudioService getAudioService(EventBus eventBus, KafkaClient kafka) {
     PostgresConfig postgresConfig = new PostgresConfig(vertx);
     AudioMetadataRepository audioMetadataRepository =
         new AudioMetadataRepository(postgresConfig.getPool());
 
-    // for pre-signed generator.
-    AwsS3Client awsS3Client =
-        new AwsS3Client(vertx, S3Config.getS3AsyncClient(), S3Config.getS3Presigner());
-    AudioTransCoderService audioTransCoderService = new AudioTransCoderServiceImpl(awsS3Client);
-
-    return new AudioServiceImpl(eventBus, audioMetadataRepository, audioTransCoderService);
+    return new AudioServiceImpl(eventBus, audioMetadataRepository, kafka);
   }
 }

@@ -6,13 +6,5 @@ package com.JoAbyssinia.audioService.DTO;
 public class DTOs {
 
   public record TrackDTO(
-      Long id,
-      String title,
-      String artist,
-      String artistId,
-      String album,
-      String albumId,
-      String albumArtUrl,
-      Long duration,
-      String streamPath) {}
+      Long id, Long trackId, String title, String artistName, String streamPath) {}
 }

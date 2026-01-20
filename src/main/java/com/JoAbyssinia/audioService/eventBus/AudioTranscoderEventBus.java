@@ -14,6 +14,7 @@ import io.vertx.core.json.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -44,10 +45,16 @@ public class AudioTranscoderEventBus {
               Long id = json.getLong("id");
               String title = json.containsKey("title") ? json.getString("title") : "title_unknown";
               String artist =
-                  json.containsKey("artist") ? json.getString("artist") : "artist_unknown";
+                  json.containsKey("artistName") ? json.getString("artistName") : "artist_unknown";
+              String audioFileLocation = json.getString("originalPath");
+
+              if (audioFileLocation == null || audioFileLocation.isEmpty()) {
+                logger.error("Original path is missing for audio id: " + id);
+                return;
+              }
 
               try {
-                transcodeAudio(vertx, id, title, artist)
+                transcodeAudio(vertx, id, title, artist, audioFileLocation)
                     .onSuccess(result -> logger.info("Audio transcode successfully"))
                     .onFailure(throwable -> logger.error("Audio transcode failed"));
               } catch (IOException e) {
@@ -58,18 +65,20 @@ public class AudioTranscoderEventBus {
             });
   }
 
-  private Future<Void> transcodeAudio(Vertx vertx, Long id, String title, String artist)
+  private Future<Void> transcodeAudio(
+      Vertx vertx, Long id, String title, String artist, String audioFileLocation)
       throws IOException {
     Promise<Void> promise = Promise.promise();
     // create unique file name
-    String fileName = title + '_' + artist;
+    String titleSensitized = title.trim().replaceAll("\s+", "_");
+    String fileName = titleSensitized + '-' + artist + '-' + UUID.randomUUID();
     // Temporary output location
     File outputFile = Files.createTempDirectory("output_" + fileName).toFile();
     AtomicReference<File> downloadedFile = new AtomicReference<>();
 
     // Start the chain with downloadFile
     audioTransCoderService
-        .downloadFile(fileName)
+        .downloadFile(audioFileLocation, fileName)
         .compose(
             file -> {
               // Store reference to downloaded file for cleanup
@@ -124,8 +133,8 @@ public class AudioTranscoderEventBus {
                   new JsonObject()
                       .put("id", id)
                       .put("title", title)
-                      .put("artist", artist)
-                      .put("distinction", transcodeFileName);
+                      .put("artistName", artist)
+                      .put("transcodeFileName", transcodeFileName);
 
               eventBus.send(Constant.METADATA_UPDATE_ADDRESS, jsonMsg);
               logger.info("Transcoding of " + fileName + " completed successfully");

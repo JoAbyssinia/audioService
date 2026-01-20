@@ -41,7 +41,7 @@ public class MetadataEventBus {
                                   + " title: "
                                   + json.getString("title")
                                   + " artist: "
-                                  + json.getString("artist")))
+                                  + json.getString("artistName")))
                   .onFailure(err -> logger.error(err.getMessage()));
             });
   }
@@ -49,10 +49,10 @@ public class MetadataEventBus {
   private Future<Void> updateAudioStatus(JsonObject json) {
     Promise<Void> promise = Promise.promise();
     Long id = json.getLong("id");
-    String distinction = json.getString("distinction");
+    String transcodeFileName = json.getString("transcodeFileName");
 
     audioService
-        .update(AudioStatus.COMPLETED, distinction, id)
+        .update(AudioStatus.COMPLETED, transcodeFileName, id)
         .onSuccess(v -> promise.complete())
         .onFailure(err -> promise.fail("audio update failed id: " + id));
 

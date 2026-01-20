@@ -24,10 +24,10 @@ public class AudioTransCoderServiceImpl implements AudioTransCoderService {
     return awsS3Client.uploadFolderToS3(file, s3FolderKey);
   }
 
-  public Future<File> downloadFile(String fileName) {
+  public Future<File> downloadFile(String audioFileLocation, String fileName) {
     Promise<File> promise = Promise.promise();
     awsS3Client
-        .downloadFile(fileName)
+        .downloadFile(audioFileLocation, fileName)
         .onSuccess(
             result -> {
               logger.info(
@@ -55,29 +55,6 @@ public class AudioTransCoderServiceImpl implements AudioTransCoderService {
         .onFailure(
             err -> {
               logger.error("cant create " + err);
-              promise.fail(err);
-            });
-    return promise.future();
-  }
-
-  public Future<String> generateResignedUrl(String fileName, long duration) {
-    Promise<String> promise = Promise.promise();
-
-    if (fileName == null) {
-      logger.error("fileName is null");
-      promise.fail("fileName is null");
-    }
-    if (duration <= 0) {
-      logger.error("duration is invalid");
-      promise.fail("duration is invalid");
-    }
-
-    awsS3Client
-        .generateResignedUrl(fileName, duration)
-        .onSuccess(promise::complete)
-        .onFailure(
-            err -> {
-              logger.error(err);
               promise.fail(err);
             });
     return promise.future();

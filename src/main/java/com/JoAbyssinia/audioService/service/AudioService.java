@@ -14,11 +14,5 @@ public interface AudioService {
 
   Future<Audio> update(AudioStatus status, String streamPath, Long audioId);
 
-  Future<String> generatePresignedUrl(String fileName, long duration);
-
-  Future<String> findAll();
-
-  AudioService setContext(RoutingContext context);
-
   RoutingContext getContext();
 }

@@ -32,13 +32,9 @@ public class JsonUtil {
                   var audio = (Audio) obj;
                   return new DTOs.TrackDTO(
                       audio.getId(),
+                      audio.getTrackId(),
                       audio.getTitle(),
-                      audio.getArtist(),
-                      audio.getArtistId().orElse(null),
-                      audio.getAlbum().orElse(null),
-                      audio.getAlbumId().orElse(null),
-                      audio.getAlbumArtUrl().orElse(null),
-                      audio.getDuration(),
+                      audio.getArtistName(),
                       audio.getStreamPath());
                 })
             .toList();

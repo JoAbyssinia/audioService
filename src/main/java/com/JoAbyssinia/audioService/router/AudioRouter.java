@@ -1,6 +1,5 @@
 package com.JoAbyssinia.audioService.router;
 
-import com.JoAbyssinia.audioService.entity.Audio;
 import com.JoAbyssinia.audioService.interceptor.ErrorInterceptor;
 import com.JoAbyssinia.audioService.interceptor.LogInterceptor;
 import com.JoAbyssinia.audioService.interceptor.MetricsInterceptor;
@@ -68,67 +67,6 @@ public class AudioRouter {
         .handler(logInterceptor::interceptor)
         .failureHandler(errorInterceptor::interceptor)
         .handler(metricsInterceptor::interceptor);
-
-    //    save
-    router
-        .post("/audio/save")
-        .handler(
-            context -> {
-              Audio audio = new Audio();
-              audio.setTitle(context.queryParams().get("title"));
-              audio.setOriginalPath(context.queryParams().get("originalPath"));
-              audio.setArtist(context.queryParams().get("artist"));
-              audio.setDuration(Long.parseLong(context.queryParams().get("duration")));
-
-              audioService
-                  .setContext(context)
-                  .save(audio)
-                  .onSuccess(
-                      ar ->
-                          context
-                              .response()
-                              .putHeader("content-type", "application/json")
-                              .setStatusCode(200)
-                              .end(ar))
-                  .onFailure(error -> context.fail(500, error));
-            });
-
-    // update
-
-    router
-        .get("/playlists/tracks")
-        .handler(
-            context ->
-                audioService
-                    .setContext(context)
-                    .findAll()
-                    .onSuccess(
-                        audioList ->
-                            context
-                                .response()
-                                .putHeader("content-type", "application/json")
-                                .setStatusCode(200)
-                                .end(audioList))
-                    .onFailure(error -> context.fail(500, error)));
-
-    router
-        .get("/audio/presigned")
-        .handler(
-            context -> {
-              String streamPath = context.queryParams().get("streamPath");
-              String durationStr = context.queryParams().get("duration");
-              audioService
-                  .setContext(context)
-                  .generatePresignedUrl(streamPath, Long.parseLong(durationStr))
-                  .onSuccess(
-                      presignedUrl ->
-                          context
-                              .response()
-                              .putHeader("content-type", "application/json")
-                              .setStatusCode(200)
-                              .end((presignedUrl != null ? presignedUrl : "")))
-                  .onFailure(error -> context.fail(500, error));
-            });
 
     router.get("/health").handler(context -> context.response().setStatusCode(200).end("OK"));
     return router;

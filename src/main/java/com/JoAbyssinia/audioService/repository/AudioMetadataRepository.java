@@ -9,7 +9,6 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.sqlclient.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Yohannes k Yimam
@@ -28,12 +27,12 @@ public class AudioMetadataRepository {
 
     // Modified query to return the generated ID
     String query =
-        "INSERT INTO audio (title, artist, duration, status, originalPath, streamPath) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id";
+        "INSERT INTO audio (title, trackId, artistName, status, originalPath, streamPath) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id";
     Tuple params =
         Tuple.of(
             audio.getTitle(),
-            audio.getArtist(),
-            audio.getDuration(),
+            audio.getTrackId(),
+            audio.getArtistName(),
             audio.getStatus().toString(),
             audio.getOriginalPath(),
             audio.getStreamPath());
@@ -81,10 +80,10 @@ public class AudioMetadataRepository {
               Row row = rows.iterator().next();
               Audio audio = new Audio();
               audio.setId(row.getLong("id"));
+              audio.setTrackId(row.getLong("trackid"));
               audio.setTitle(row.getString("title"));
-              audio.setArtist(row.getString("artist"));
+              audio.setArtistName(row.getString("artistname"));
               audio.setStatus(AudioStatus.valueOf(row.getString("status")));
-              audio.setDuration(row.getLong("duration"));
               audio.setOriginalPath(row.getString("originalpath"));
               audio.setStreamPath(streamPath);
 
@@ -117,12 +116,8 @@ public class AudioMetadataRepository {
                     Audio audio = new Audio();
                     audio.setId(row.getLong("id"));
                     audio.setTitle(row.getString("title"));
-                    audio.setArtist(row.getString("artist"));
-                    audio.setArtistId(Optional.ofNullable(row.getString("artistid")));
-                    audio.setAlbum(Optional.ofNullable(row.getString("album")));
-                    audio.setAlbumId(Optional.ofNullable(row.getString("albumid")));
-                    audio.setAlbumArtUrl(Optional.ofNullable(row.getString("albumarturl")));
-                    audio.setDuration(row.getLong("duration"));
+                    audio.setTrackId(row.getLong("trackId"));
+                    audio.setArtistName(row.getString("artist"));
                     audio.setStatus(AudioStatus.valueOf(row.getString("status")));
                     audio.setOriginalPath(row.getString("originalpath"));
                     audio.setStreamPath(row.getString("streampath"));

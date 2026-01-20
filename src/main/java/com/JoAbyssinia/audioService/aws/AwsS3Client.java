@@ -1,5 +1,8 @@
 package com.JoAbyssinia.audioService.aws;
 
+import static com.JoAbyssinia.audioService.util.Constant.ROW_AUDIO_FOLDER;
+import static com.JoAbyssinia.audioService.util.Constant.STREAM_AUDIO_FOLDERS;
+
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -11,10 +14,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -31,8 +33,6 @@ public class AwsS3Client {
   private final S3AsyncClient s3AsyncClient;
   private final S3Presigner s3Presigner;
   private final Vertx vertx;
-
-  private final String bucket = "audio-files";
 
   public AwsS3Client(Vertx vertx, S3AsyncClient s3AsyncClient, S3Presigner s3Presigner) {
     this.s3AsyncClient = s3AsyncClient;
@@ -95,7 +95,7 @@ public class AwsS3Client {
             readResult -> {
               PutObjectRequest request =
                   PutObjectRequest.builder()
-                      .bucket(bucket)
+                      .bucket(STREAM_AUDIO_FOLDERS)
                       .key(s3FolderKey)
                       .contentType("application/x-mpegURL")
                       .build();
@@ -115,7 +115,7 @@ public class AwsS3Client {
     return promise.future();
   }
 
-  public Future<File> downloadFile(String fileName) {
+  public Future<File> downloadFile(String audioFileLocation, String fileName) {
     Promise<File> promise = Promise.promise();
 
     try {
@@ -123,10 +123,10 @@ public class AwsS3Client {
       Path tempFilePath = Files.createTempFile("temp_audio_" + fileName + "_", ".mp3");
       File tempFile = tempFilePath.toFile();
 
+      String audioFileName = Paths.get(audioFileLocation).getFileName().toString();
       // Create S3 request
-      String downloadFileName = fileName + ".mp3";
       GetObjectRequest request =
-          GetObjectRequest.builder().bucket(bucket).key(downloadFileName).build();
+          GetObjectRequest.builder().bucket(ROW_AUDIO_FOLDER).key(audioFileName).build();
 
       // Download from S3 and write to temp file asynchronously
       s3AsyncClient
@@ -134,7 +134,7 @@ public class AwsS3Client {
           .whenComplete(
               (responseBytes, error) -> {
                 if (error != null) {
-                  logger.error("Failed to download file " + downloadFileName);
+                  logger.error("Failed to download file " + audioFileLocation);
                   promise.fail("Error downloading file from S3: " + error.getMessage());
                   return;
                 }
@@ -160,7 +160,7 @@ public class AwsS3Client {
 
     // Create the S3 request
     PutObjectRequest putObjectRequest =
-        PutObjectRequest.builder().bucket(bucket).key(folderName).build();
+        PutObjectRequest.builder().bucket(STREAM_AUDIO_FOLDERS).key(folderName).build();
 
     final String finalFolderName = folderName;
     // Use `AsyncRequestBody.fromBytes(new byte[0])` for an empty object
@@ -177,28 +177,10 @@ public class AwsS3Client {
     return promise.future();
   }
 
-  public Future<String> generateResignedUrl(String fileName, long milliseconds) {
-    Promise<String> promise = Promise.promise();
-    // Convert milliseconds to minutes for the presign duration
-    // add extra two minute to avoid expiration during processing
-    long minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds) + 2;
-
-    promise.complete(
-        s3Presigner
-            .presignGetObject(
-                builder ->
-                    builder
-                        .signatureDuration(Duration.ofMinutes(minutes))
-                        .getObjectRequest(
-                            GetObjectRequest.builder().bucket(bucket).key(fileName).build()))
-            .url()
-            .toString());
-    return promise.future();
-  }
-
   private Future<Void> listFiles() {
     Promise<Void> promise = Promise.promise();
-    ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).build();
+    ListObjectsV2Request request =
+        ListObjectsV2Request.builder().bucket(STREAM_AUDIO_FOLDERS).build();
     s3AsyncClient
         .listObjectsV2(request)
         .whenComplete(
