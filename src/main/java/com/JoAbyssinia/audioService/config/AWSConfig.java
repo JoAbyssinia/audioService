@@ -5,11 +5,11 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
-public class S3Config {
+public class AWSConfig {
 
   private static final String ENDPOINT =
       System.getenv()
@@ -23,11 +23,9 @@ public class S3Config {
 
   private static volatile S3AsyncClient s3AsyncClientInstance;
 
-  private static S3Client s3ClientInstance;
-
   public static S3AsyncClient getS3AsyncClient() {
     if (s3AsyncClientInstance == null) {
-      synchronized (S3Config.class) {
+      synchronized (AWSConfig.class) {
         if (s3AsyncClientInstance == null) {
           s3AsyncClientInstance =
               S3AsyncClient.builder()
@@ -43,6 +41,21 @@ public class S3Config {
       }
     }
     return s3AsyncClientInstance;
+  }
+
+  public static SqsAsyncClient getSqsClient() {
+    return SqsClientInstanceHolder.sqsClientInstance;
+  }
+
+  private static final class SqsClientInstanceHolder {
+    private static final SqsAsyncClient sqsClientInstance =
+        SqsAsyncClient.builder()
+            .endpointOverride(URI.create(ENDPOINT))
+            .credentialsProvider(
+                StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(ACCESS_KEY_ID, ACCESS_KEY_SECRET)))
+            .region(Region.of(REGION))
+            .build();
   }
 
   private static final class S3PresignerInstanceHolder {

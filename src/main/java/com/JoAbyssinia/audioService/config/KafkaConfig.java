@@ -25,6 +25,9 @@ public class KafkaConfig {
         Map.entry("bootstrap.servers", SERVER),
         Map.entry("schema.registry.url", SCHEMA_REGISTRY_URL),
 
+        // listener settings
+        Map.entry("auto-startup", "false"),
+
         // Serialization
         Map.entry("key.serializer", STRING_SERIALIZER),
         Map.entry("value.serializer", JSON_SCHEMA_SERIALIZER),

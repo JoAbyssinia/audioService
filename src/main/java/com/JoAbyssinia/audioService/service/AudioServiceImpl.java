@@ -1,5 +1,6 @@
 package com.JoAbyssinia.audioService.service;
 
+import com.JoAbyssinia.audioService.aws.AwsSqsClient;
 import com.JoAbyssinia.audioService.broker.KafkaClient;
 import com.JoAbyssinia.audioService.entity.Audio;
 import com.JoAbyssinia.audioService.entity.AudioStatus;
@@ -27,12 +28,17 @@ public class AudioServiceImpl implements AudioService {
   private final AudioMetadataRepository audioMetadataRepository;
   private final EventBus eventBus;
   private final KafkaClient kafkaClient;
+  private final AwsSqsClient awsSqsClient;
 
   public AudioServiceImpl(
-      EventBus eventBus, AudioMetadataRepository audioMetadataRepository, KafkaClient kafkaClient) {
+      EventBus eventBus,
+      AudioMetadataRepository audioMetadataRepository,
+      KafkaClient kafkaClient,
+      AwsSqsClient awsSqsClient) {
     this.audioMetadataRepository = audioMetadataRepository;
     this.eventBus = eventBus;
     this.kafkaClient = kafkaClient;
+    this.awsSqsClient = awsSqsClient;
   }
 
   @Override
@@ -62,10 +68,7 @@ public class AudioServiceImpl implements AudioService {
                 throw new RuntimeException(e);
               }
             })
-        .onFailure(
-            res -> {
-              promise.fail(res);
-            });
+        .onFailure(promise::fail);
 
     return promise.future();
   }
@@ -78,21 +81,40 @@ public class AudioServiceImpl implements AudioService {
         .onSuccess(
             audio -> {
               promise.complete(audio);
-              // send message to kafka
-              kafkaClient
-                  .writeToTopic(Constant.PROCESSED_AUDIO_NOTIFICATIONS, audio)
-                  .onSuccess(
-                      v ->
-                          logger.info(
-                              "audio processed message sent to kafka for track id: "
-                                  + audio.getTrackId()))
-                  .onFailure(
-                      err ->
-                          logger.error(
-                              "failed to send audio processed message to kafka for track id: "
-                                  + audio.getTrackId()
-                                  + " due to "
-                                  + err.getMessage()));
+              // send a message to SQS about the processed audio
+              try {
+                awsSqsClient
+                    .sendMessage(audio)
+                    .onSuccess(
+                        v ->
+                            logger.info(
+                                "audio processed message sent to SQS for track id: "
+                                    + audio.getTrackId()))
+                    .onFailure(
+                        err ->
+                            logger.error(
+                                "failed to send audio processed message to SQS for track id: "
+                                    + audio.getTrackId()
+                                    + " due to "
+                                    + err.getMessage()));
+              } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+              }
+              //              kafkaClient
+              //                  .writeToTopic(Constant.PROCESSED_AUDIO_NOTIFICATIONS, audio)
+              //                  .onSuccess(
+              //                      v ->
+              //                          logger.info(
+              //                              "audio processed message sent to kafka for track id: "
+              //                                  + audio.getTrackId()))
+              //                  .onFailure(
+              //                      err ->
+              //                          logger.error(
+              //                              "failed to send audio processed message to kafka for
+              // track id: "
+              //                                  + audio.getTrackId()
+              //                                  + " due to "
+              //                                  + err.getMessage()));
             });
 
     return promise.future();

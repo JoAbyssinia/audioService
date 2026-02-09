@@ -1,7 +1,9 @@
 package com.JoAbyssinia.audioService.verticle;
 
+import com.JoAbyssinia.audioService.aws.AwsSqsClient;
 import com.JoAbyssinia.audioService.broker.KafkaClient;
-import com.JoAbyssinia.audioService.broker.KafkaConsumerService;
+import com.JoAbyssinia.audioService.broker.SQSConsumerService;
+import com.JoAbyssinia.audioService.config.AWSConfig;
 import com.JoAbyssinia.audioService.config.KafkaConfig;
 import com.JoAbyssinia.audioService.config.PostgresConfig;
 import com.JoAbyssinia.audioService.eventBus.MetadataEventBus;
@@ -19,6 +21,7 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
  * @author Yohannes k Yimam
@@ -34,10 +37,16 @@ public class MetadataVerticle extends AbstractVerticle {
     EventBus eventBus = vertx.eventBus();
     // kafka client
     KafkaClient kafkaClient = new KafkaClient(vertx, KafkaConfig.getConfigs());
+    // AWS sqs config
+    SqsAsyncClient sqsClient = AWSConfig.getSqsClient();
+    // AWS SQS client
+    AwsSqsClient awsSqsClient = new AwsSqsClient(sqsClient);
     // initialise classes
-    AudioService audioService = getAudioService(eventBus, kafkaClient);
+    AudioService audioService = getAudioService(eventBus, kafkaClient, awsSqsClient);
     // start kafka consumer
-    new KafkaConsumerService(kafkaClient, audioService).messageConsumer();
+    //    new KafkaConsumerService(kafkaClient, audioService).messageConsumer();
+    // aws sqs consumer
+    new SQSConsumerService(vertx, audioService, sqsClient).consumeMessages();
     // create event bus listener
     new MetadataEventBus(eventBus, audioService).evenBus();
 
@@ -67,11 +76,12 @@ public class MetadataVerticle extends AbstractVerticle {
             });
   }
 
-  private AudioService getAudioService(EventBus eventBus, KafkaClient kafka) {
+  private AudioService getAudioService(
+      EventBus eventBus, KafkaClient kafka, AwsSqsClient awsSqsClient) {
     PostgresConfig postgresConfig = new PostgresConfig(vertx);
     AudioMetadataRepository audioMetadataRepository =
         new AudioMetadataRepository(postgresConfig.getPool());
 
-    return new AudioServiceImpl(eventBus, audioMetadataRepository, kafka);
+    return new AudioServiceImpl(eventBus, audioMetadataRepository, kafka, awsSqsClient);
   }
 }

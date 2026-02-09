@@ -1,7 +1,7 @@
 package com.JoAbyssinia.audioService.verticle;
 
 import com.JoAbyssinia.audioService.aws.AwsS3Client;
-import com.JoAbyssinia.audioService.config.S3Config;
+import com.JoAbyssinia.audioService.config.AWSConfig;
 import com.JoAbyssinia.audioService.eventBus.AudioTranscoderEventBus;
 import com.JoAbyssinia.audioService.service.AudioTransCoderService;
 import com.JoAbyssinia.audioService.service.AudioTransCoderServiceImpl;
@@ -24,8 +24,8 @@ public class AudioTranscodeWorkerVerticle extends AbstractVerticle {
     // event bus
     EventBus eventBus = vertx.eventBus();
     // s3 configs
-    S3AsyncClient s3Client = S3Config.getS3AsyncClient();
-    S3Presigner s3Presigner = S3Config.getS3Presigner();
+    S3AsyncClient s3Client = AWSConfig.getS3AsyncClient();
+    S3Presigner s3Presigner = AWSConfig.getS3Presigner();
     // aws client
     AwsS3Client awsS3Client = new AwsS3Client(vertx, s3Client, s3Presigner);
     //    awsS3Client.listFiles();
