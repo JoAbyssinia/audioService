@@ -18,7 +18,8 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 public class SQSConsumerService {
 
   private static final String INPUT_QUEUE_URL =
-      "http://localhost:4566/000000000000/audio-ingest-queue";
+      System.getenv()
+          .getOrDefault("INPUT_QUEUE_URL", "http://localhost:4566/000000000000/audio-ingest-queue");
   private final SqsAsyncClient sqsAsyncClient;
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final AudioService audioService;

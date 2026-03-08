@@ -34,6 +34,6 @@ public class AudioTranscodeWorkerVerticle extends AbstractVerticle {
     // create event bus listener
     new AudioTranscoderEventBus(vertx, eventBus, audioTransCoderService).eventBus();
 
-    System.out.println("AudioSegmentationWorkerVerticle started");
+    logger.info(this.getClass().getName() + " started");
   }
 }
