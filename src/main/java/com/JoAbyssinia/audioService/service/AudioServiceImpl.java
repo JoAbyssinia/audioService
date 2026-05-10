@@ -1,7 +1,6 @@
 package com.JoAbyssinia.audioService.service;
 
 import com.JoAbyssinia.audioService.aws.AwsSqsClient;
-import com.JoAbyssinia.audioService.broker.KafkaClient;
 import com.JoAbyssinia.audioService.entity.Audio;
 import com.JoAbyssinia.audioService.entity.AudioStatus;
 import com.JoAbyssinia.audioService.repository.AudioMetadataRepository;

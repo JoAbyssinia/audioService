@@ -113,7 +113,8 @@ public class AudioTranscoderEventBus {
                           audioTransCoderService
                               .uploadFolderToS3(outputFile, s3folderName)
                               .onSuccess(
-                                  v -> logger.info("Successfully uploaded files to " + s3folderName))
+                                  v ->
+                                      logger.info("Successfully uploaded files to " + s3folderName))
                               .onFailure(
                                   err -> {
                                     logger.error("Audio upload failed", err);
