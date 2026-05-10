@@ -1,8 +1,6 @@
 package com.JoAbyssinia.audioService.config;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.internal.logging.Logger;
-import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.pgclient.PgBuilder;
 import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.SslMode;
@@ -51,7 +49,8 @@ public class PostgresConfig {
                   .using(vertx)
                   .build();
           // create the table if it doesn't exist
-          String query = """
+          String query =
+              """
             CREATE TABLE IF NOT EXISTS audio (
                  id BIGSERIAL NOT NULL PRIMARY KEY,
                  trackid BIGSERIAL,

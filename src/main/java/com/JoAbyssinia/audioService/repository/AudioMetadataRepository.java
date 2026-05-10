@@ -4,13 +4,10 @@ import com.JoAbyssinia.audioService.entity.Audio;
 import com.JoAbyssinia.audioService.entity.AudioStatus;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.internal.logging.Logger;
-import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.sqlclient.*;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Yohannes k Yimam
