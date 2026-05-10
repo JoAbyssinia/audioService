@@ -11,8 +11,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.internal.logging.Logger;
+import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import java.util.List;
@@ -27,17 +27,14 @@ public class AudioServiceImpl implements AudioService {
 
   private final AudioMetadataRepository audioMetadataRepository;
   private final EventBus eventBus;
-  private final KafkaClient kafkaClient;
   private final AwsSqsClient awsSqsClient;
 
   public AudioServiceImpl(
       EventBus eventBus,
       AudioMetadataRepository audioMetadataRepository,
-      KafkaClient kafkaClient,
       AwsSqsClient awsSqsClient) {
     this.audioMetadataRepository = audioMetadataRepository;
     this.eventBus = eventBus;
-    this.kafkaClient = kafkaClient;
     this.awsSqsClient = awsSqsClient;
   }
 
@@ -100,21 +97,6 @@ public class AudioServiceImpl implements AudioService {
               } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
               }
-              //              kafkaClient
-              //                  .writeToTopic(Constant.PROCESSED_AUDIO_NOTIFICATIONS, audio)
-              //                  .onSuccess(
-              //                      v ->
-              //                          logger.info(
-              //                              "audio processed message sent to kafka for track id: "
-              //                                  + audio.getTrackId()))
-              //                  .onFailure(
-              //                      err ->
-              //                          logger.error(
-              //                              "failed to send audio processed message to kafka for
-              // track id: "
-              //                                  + audio.getTrackId()
-              //                                  + " due to "
-              //                                  + err.getMessage()));
             });
 
     return promise.future();

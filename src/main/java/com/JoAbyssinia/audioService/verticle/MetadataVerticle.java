@@ -17,8 +17,8 @@ import com.JoAbyssinia.audioService.service.AudioServiceImpl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.internal.logging.Logger;
+import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -82,6 +82,6 @@ public class MetadataVerticle extends AbstractVerticle {
     AudioMetadataRepository audioMetadataRepository =
         new AudioMetadataRepository(postgresConfig.getPool());
 
-    return new AudioServiceImpl(eventBus, audioMetadataRepository, kafka, awsSqsClient);
+    return new AudioServiceImpl(eventBus, audioMetadataRepository, awsSqsClient);
   }
 }

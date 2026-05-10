@@ -8,8 +8,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.internal.logging.Logger;
+import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import java.io.File;
 import java.io.IOException;
@@ -69,7 +69,7 @@ public class AudioTranscoderEventBus {
       Vertx vertx, Long id, String title, String artist, String audioFileLocation)
       throws IOException {
     Promise<Void> promise = Promise.promise();
-    // create unique file name
+    // create a unique file name
     String titleSensitized = title.trim().replaceAll("\s+", "_");
     String fileName = titleSensitized + '-' + artist + '-' + UUID.randomUUID();
     // Temporary output location
@@ -81,18 +81,18 @@ public class AudioTranscoderEventBus {
         .downloadFile(audioFileLocation, fileName)
         .compose(
             file -> {
-              // Store reference to downloaded file for cleanup
+              // Store reference to a downloaded file for cleanup
               downloadedFile.set(file);
 
-              // Transcode file asynchronously - using non-deprecated executeBlocking
+              // Transcode a file asynchronously - using non-deprecated executeBlocking
               return vertx.executeBlocking(
-                  promise1 -> {
+                  () -> {
                     try {
                       AudioProcesses.transcodeToM3u8(file, outputFile);
-                      promise1.complete();
+                      return null; // Return null since we don't need to pass any result
                     } catch (Exception e) {
                       logger.error("Audio transcode failed", e);
-                      promise1.fail(e);
+                      throw e; // Rethrow to fail the executeBlocking
                     }
                   },
                   false); // false means don't order with other blocking operations
@@ -109,18 +109,15 @@ public class AudioTranscoderEventBus {
               // Upload file to S3
               return vertx
                   .executeBlocking(
-                      uploadPromise ->
+                      () ->
                           audioTransCoderService
                               .uploadFolderToS3(outputFile, s3folderName)
                               .onSuccess(
-                                  v -> {
-                                    logger.info("Successfully uploaded files to " + s3folderName);
-                                    uploadPromise.complete();
-                                  })
+                                  v -> logger.info("Successfully uploaded files to " + s3folderName))
                               .onFailure(
                                   err -> {
                                     logger.error("Audio upload failed", err);
-                                    uploadPromise.fail(err);
+                                    throw new RuntimeException(err);
                                   }),
                       false)
                   .map(v -> s3folderName); // Pass the s3folderName to the next step

@@ -3,8 +3,8 @@ package com.JoAbyssinia.audioService.service;
 import com.JoAbyssinia.audioService.aws.AwsS3Client;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.internal.logging.Logger;
+import io.vertx.core.internal.logging.LoggerFactory;
 import java.io.File;
 
 /**
@@ -12,7 +12,7 @@ import java.io.File;
  */
 public class AudioTransCoderServiceImpl implements AudioTransCoderService {
 
-  Logger logger = LoggerFactory.getLogger(AudioTransCoderServiceImpl.class);
+  private final Logger logger = LoggerFactory.getLogger(AudioTransCoderServiceImpl.class);
 
   private final AwsS3Client awsS3Client;
 

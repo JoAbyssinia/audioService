@@ -81,12 +81,12 @@ The application can be configured using the following environment variables:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `KAFKA_SERVER` | Kafka bootstrap server address | `localhost:9092` |
-| `POSTGRES_HOST` | PostgreSQL host | `localhost` |
-| `POSTGRES_PORT` | PostgreSQL port | `5432` |
-| `POSTGRES_USERNAME`| Database username | `username` |
-| `POSTGRES_PASSWORD`| Database password | `password` |
-| `POSTGRES_DATABASE`| Database name | `postgres` |
-| `AWS_S3_ENDPOINT` | S3 endpoint (LocalStack) | `http://localhost:4566` |
+| `DATABASE_HOST` | Database host (RDS endpoint) | `localhost` |
+| `DATABASE_PORT` | Database port | `5432` |
+| `DATABASE_NAME` | Database name | `postgres` |
+| `POSTGRES_USERNAME`| Database username (local dev fallback when `DATABASE_SECRET` is not set) | `username` |
+| `POSTGRES_PASSWORD`| Database password (local dev fallback when `DATABASE_SECRET` is not set) | `password` |
+| `AWS_S3_ENDPOINT` | AWS endpoint (LocalStack) | `http://localhost:4566` |
 | `AWS_ACCESS_KEY_ID`| AWS access key | `112233445566` |
 | `AWS_SECRET_ACCESS_KEY`| AWS secret key | `112233445566` |
 | `AWS_REGION` | AWS region | `us-east-1` |

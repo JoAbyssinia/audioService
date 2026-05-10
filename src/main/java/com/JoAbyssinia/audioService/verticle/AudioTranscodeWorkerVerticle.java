@@ -7,8 +7,8 @@ import com.JoAbyssinia.audioService.service.AudioTransCoderService;
 import com.JoAbyssinia.audioService.service.AudioTransCoderServiceImpl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.internal.logging.Logger;
+import io.vertx.core.internal.logging.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 

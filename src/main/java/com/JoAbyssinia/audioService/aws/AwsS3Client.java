@@ -3,13 +3,11 @@ package com.JoAbyssinia.audioService.aws;
 import static com.JoAbyssinia.audioService.util.Constant.ROW_AUDIO_FOLDER;
 import static com.JoAbyssinia.audioService.util.Constant.STREAM_AUDIO_FOLDERS;
 
-import io.vertx.core.CompositeFuture;
+
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +15,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -26,10 +26,8 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 /**
  * @author Yohannes k Yimam
  */
+@Slf4j
 public class AwsS3Client {
-
-  private final Logger logger = LoggerFactory.getLogger(AwsS3Client.class);
-
   private final S3AsyncClient s3AsyncClient;
   private final S3Presigner s3Presigner;
   private final Vertx vertx;
@@ -56,7 +54,7 @@ public class AwsS3Client {
     }
 
     // Create a list to track all file upload futures
-    List<Future> uploadFutures = new ArrayList<>();
+    List<Future<?>> uploadFutures = new ArrayList<>();
 
     for (File file : files) {
       if (file.isFile()) {
@@ -68,19 +66,15 @@ public class AwsS3Client {
       }
     }
 
-    CompositeFuture.all(uploadFutures)
-        .onSuccess(
-            result -> {
-              logger.info(
-                  "Uploaded folder " + folder.getAbsolutePath() + " to S3 at " + s3FolderKey);
-              promise.complete();
-            })
-        .onFailure(
-            throwable -> {
-              logger.error(
-                  "Failed to upload folder " + folder.getAbsolutePath() + " to S3", throwable);
-              promise.fail(throwable);
-            });
+    Future.all(uploadFutures)
+      .onSuccess(result -> {
+        log.info("Uploaded folder {} to S3 at {}", folder.getAbsolutePath(), s3FolderKey);
+        promise.complete();
+      })
+      .onFailure(throwable -> {
+        log.error("Failed to upload folder {} to S3", folder.getAbsolutePath(), throwable);
+        promise.fail(throwable);
+      });
 
     return promise.future();
   }
@@ -105,7 +99,7 @@ public class AwsS3Client {
                   .whenComplete(
                       (result, error) -> {
                         if (error != null) {
-                          logger.error("Error uploading file to S3", error);
+                          log.error("Error uploading file to S3", error);
                           promise.fail(error);
                         } else promise.complete();
                       });
@@ -128,13 +122,13 @@ public class AwsS3Client {
       GetObjectRequest request =
           GetObjectRequest.builder().bucket(ROW_AUDIO_FOLDER).key(audioFileName).build();
 
-      // Download from S3 and write to temp file asynchronously
+      // Download from S3 and write to a temp file asynchronously
       s3AsyncClient
           .getObject(request, AsyncResponseTransformer.toBytes())
           .whenComplete(
               (responseBytes, error) -> {
                 if (error != null) {
-                  logger.error("Failed to download file " + audioFileLocation);
+                  log.error("Failed to download file from audio file location {}", audioFileLocation);
                   promise.fail("Error downloading file from S3: " + error.getMessage());
                   return;
                 }
@@ -148,7 +142,7 @@ public class AwsS3Client {
               });
 
     } catch (IOException e) {
-      logger.error("Failed to download file " + fileName);
+      log.error("Failed to download file {}", fileName);
       promise.fail("Failed to create temp file: " + e.getMessage());
     }
 
@@ -169,7 +163,7 @@ public class AwsS3Client {
         .whenComplete(
             (PutObjectResponse response, Throwable error) -> {
               if (error != null) {
-                logger.error("Error creating folder " + finalFolderName + ":" + error.getMessage());
+                log.error("Error creating folder {}:{}", finalFolderName, error.getMessage());
                 promise.fail(error);
               } else promise.complete(finalFolderName);
             });

@@ -3,8 +3,8 @@ package com.JoAbyssinia.audioService;
 import com.JoAbyssinia.audioService.verticle.AudioTranscodeWorkerVerticle;
 import com.JoAbyssinia.audioService.verticle.MetadataVerticle;
 import io.vertx.core.*;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.internal.logging.Logger;
+import io.vertx.core.internal.logging.LoggerFactory;
 
 public class MainVerticle extends AbstractVerticle {
 

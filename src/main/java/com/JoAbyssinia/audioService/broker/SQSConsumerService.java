@@ -19,7 +19,8 @@ public class SQSConsumerService {
 
   private static final String INPUT_QUEUE_URL =
       System.getenv()
-          .getOrDefault("INPUT_QUEUE_URL", "http://localhost:4566/000000000000/audio-ingest-queue");
+          .getOrDefault(
+              "AUDIO_INGEST_QUEUE", "http://localhost:4566/000000000000/audio-ingest-queue");
   private final SqsAsyncClient sqsAsyncClient;
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final AudioService audioService;
@@ -32,7 +33,7 @@ public class SQSConsumerService {
   }
 
   public void consumeMessages() {
-    log.info("Starting SQS Long Polling on: " + INPUT_QUEUE_URL);
+    log.info("Starting SQS Long Polling on: {}", INPUT_QUEUE_URL);
     ReceiveMessageRequest receiveMessageRequest =
         ReceiveMessageRequest.builder()
             .queueUrl(INPUT_QUEUE_URL)

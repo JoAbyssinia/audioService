@@ -16,7 +16,10 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
  */
 @Slf4j
 public class AwsSqsClient {
-  private static final String QUEUE_NAME = "http://localhost:4566/000000000000/audio-status-queue";
+  private static final String AUDIO_STATUS_QUEUE_URL =
+      System.getenv()
+          .getOrDefault(
+              "AUDIO_STATUS_QUEUE", "http://localhost:4566/000000000000/audio-status-queue");
   private final SqsAsyncClient sqsClient;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -38,11 +41,9 @@ public class AwsSqsClient {
         new TrackResponseBrokerDTO(
             audio.getTrackId(), audio.getTitle(), audio.getArtistName(), audio.getStreamPath());
 
-    // will replace it with on production.
-    GetQueueUrlRequest queueUrlRequest = GetQueueUrlRequest.builder().queueName(QUEUE_NAME).build();
     SendMessageRequest request =
         SendMessageRequest.builder()
-            .queueUrl(QUEUE_NAME)
+            .queueUrl(AUDIO_STATUS_QUEUE_URL)
             .messageBody(objectMapper.writeValueAsString(responseBrokerDTO))
             .build();
     sqsClient.sendMessage(request);
