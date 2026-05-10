@@ -24,16 +24,42 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Get latest tag
+      - name: Read and increment version
         id: get_version
         run: |
-          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "Latest tag: $latest_tag"
-          latest_version=${latest_tag#v}
-          IFS='.' read -r major minor patch <<< "$latest_version"
-          new_version="v$major.$minor.$((patch+1))"
-          echo "new_version=$new_version" >> $GITHUB_ENV
-          echo "New version: $new_version"
+          current=$(cat version.txt)
+          echo "Current version: $current"
+          IFS='.' read -r major minor patch <<< "$current"
+
+          # Check commit message for version bump instructions
+          commit_msg="${{ github.event.head_commit.message }}"
+          if [[ "$commit_msg" =~ \[major\] ]]; then
+            new_version="$((major+1)).0.0"
+            echo "🚀 Major version bump detected: $current -> $new_version"
+          elif [[ "$commit_msg" =~ \[minor\] ]]; then
+            new_version="$major.$((minor+1)).0"
+            echo "✨ Minor version bump detected: $current -> $new_version"
+          elif [[ "$commit_msg" =~ \[patch\] ]]; then
+            new_version="$major.$minor.$((patch+1))"
+            echo "🔧 Patch version bump detected: $current -> $new_version"
+          else
+            new_version="$current"
+            echo "ℹ️  No version bump tag found - using current version: $new_version"
+          fi
+
+          echo "new_version=v$new_version" >> $GITHUB_ENV
+          echo "version_number=$new_version" >> $GITHUB_ENV
+          echo "version_changed=$([[ "$new_version" != "$current" ]] && echo "true" || echo "false")" >> $GITHUB_ENV
+
+      - name: Update version.txt if changed
+        if: env.version_changed == 'true'
+        run: |
+          echo "${{ env.version_number }}" > version.txt
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add version.txt
+          git commit -m "chore: bump version to ${{ env.version_number }} [skip ci]"
+          git push
 
       - name: Build with Maven
         run: mvn -B package --file pom.xml

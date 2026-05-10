@@ -4,18 +4,19 @@ import com.JoAbyssinia.audioService.entity.Audio;
 import com.JoAbyssinia.audioService.entity.AudioStatus;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.internal.logging.Logger;
+import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.sqlclient.*;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Yohannes k Yimam
  */
+@Slf4j
 public class AudioMetadataRepository {
-
-  private static final Logger logger = LoggerFactory.getLogger(AudioMetadataRepository.class);
   private final SqlClient pool;
 
   public AudioMetadataRepository(SqlClient pool) {
@@ -50,7 +51,7 @@ public class AudioMetadataRepository {
             })
         .onFailure(
             err -> {
-              logger.error("error on insert query " + err.getMessage());
+              log.error("error on insert query {}", err.getMessage());
               promise.fail(err); // Properly fail the promise so callers know about the error
             });
 
@@ -95,7 +96,7 @@ public class AudioMetadataRepository {
         .onSuccess(promise::complete)
         .onFailure(
             err -> {
-              logger.error("error on update query " + err.getMessage());
+              log.error("error on update query {}", err.getMessage());
               promise.fail(err);
             });
 

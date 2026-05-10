@@ -50,7 +50,7 @@ public class KafkaConsumerService {
     try {
       logger.info("Processing message at offset {}: {}", record.offset(), record.value());
 
-      // Create audio entity from the record
+      // Create an audio entity from the record
       Audio audio = new Audio();
       audio.setTrackId(record.value().trackId());
       audio.setTitle(record.value().title());
