@@ -5,14 +5,15 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 
 /**
  * @author Yohannes k Yimam
  */
+@Slf4j
 public class AudioTransCoderServiceImpl implements AudioTransCoderService {
-
-  private final Logger logger = LoggerFactory.getLogger(AudioTransCoderServiceImpl.class);
 
   private final AwsS3Client awsS3Client;
 
@@ -30,13 +31,12 @@ public class AudioTransCoderServiceImpl implements AudioTransCoderService {
         .downloadFile(audioFileLocation, fileName)
         .onSuccess(
             result -> {
-              logger.info(
-                  "Downloaded file " + result.getName() + " to S3 at " + result.getAbsolutePath());
+              log.info("Downloaded file {} to S3 at {}", result.getName(), result.getAbsolutePath());
               promise.complete(result);
             })
         .onFailure(
             err -> {
-              logger.error("download failed " + err.getMessage(), err);
+              log.error("download failed {}", err.getMessage(), err);
               promise.fail(err);
             });
 
@@ -54,7 +54,7 @@ public class AudioTransCoderServiceImpl implements AudioTransCoderService {
         .onSuccess(promise::complete)
         .onFailure(
             err -> {
-              logger.error("cant create " + err);
+              log.error("cant create {}", String.valueOf(err));
               promise.fail(err);
             });
     return promise.future();

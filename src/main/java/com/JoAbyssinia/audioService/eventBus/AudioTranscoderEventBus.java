@@ -70,8 +70,9 @@ public class AudioTranscoderEventBus {
       throws IOException {
     Promise<Void> promise = Promise.promise();
     // create a unique file name
-    String titleSensitized = title.trim().replaceAll("\s+", "_");
-    String fileName = titleSensitized + '-' + artist + '-' + UUID.randomUUID();
+    String titleSensitized = title.trim().replaceAll(" +", "_");
+    String artistSensitized = artist.trim().replaceAll(" +", "_");
+    String fileName = titleSensitized + '-' + artistSensitized + '-' + UUID.randomUUID();
     // Temporary output location
     File outputFile = Files.createTempDirectory("output_" + fileName).toFile();
     AtomicReference<File> downloadedFile = new AtomicReference<>();

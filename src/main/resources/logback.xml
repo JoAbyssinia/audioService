@@ -1,0 +1,19 @@
+<configuration>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Reduce noise from verbose AWS SDK and Netty internals -->
+  <logger name="software.amazon.awssdk" level="WARN"/>
+  <logger name="io.netty"               level="WARN"/>
+  <logger name="io.vertx"               level="INFO"/>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+</configuration>
+

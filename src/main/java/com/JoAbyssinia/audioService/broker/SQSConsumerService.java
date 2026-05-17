@@ -47,7 +47,7 @@ public class SQSConsumerService {
             (receiveMessageResponse, throwable) -> {
               if (throwable != null) {
                 log.error("Error receiving messages from SQS: ", throwable);
-                vertx.setTimer(5000L, t -> consumeMessages());
+                vertx.setTimer(10000L, t -> consumeMessages());
               } else {
                 if (receiveMessageResponse.hasMessages()) {
                   receiveMessageResponse
@@ -99,6 +99,9 @@ public class SQSConsumerService {
                               throw new RuntimeException(e);
                             }
                           });
+                }else{
+                  log.info("No messages received from SQS");
+                  vertx.setTimer(10000L, t -> consumeMessages());
                 }
               }
             });
