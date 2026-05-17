@@ -3,11 +3,8 @@ package com.JoAbyssinia.audioService.service;
 import com.JoAbyssinia.audioService.aws.AwsS3Client;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.internal.logging.Logger;
-import io.vertx.core.internal.logging.LoggerFactory;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.File;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Yohannes k Yimam
@@ -31,7 +28,8 @@ public class AudioTransCoderServiceImpl implements AudioTransCoderService {
         .downloadFile(audioFileLocation, fileName)
         .onSuccess(
             result -> {
-              log.info("Downloaded file {} to S3 at {}", result.getName(), result.getAbsolutePath());
+              log.info(
+                  "Downloaded file {} to S3 at {}", result.getName(), result.getAbsolutePath());
               promise.complete(result);
             })
         .onFailure(
