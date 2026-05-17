@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -154,9 +153,12 @@ public class AwsS3Client {
 
     // Create the S3 request
     PutObjectRequest putObjectRequest =
-        PutObjectRequest.builder().bucket(S3_BUCKET).key(Constant.STREAM_AUDIO_FOLDERS  +"/"+ folderName).build();
+        PutObjectRequest.builder()
+            .bucket(S3_BUCKET)
+            .key(Constant.STREAM_AUDIO_FOLDERS + "/" + folderName)
+            .build();
 
-    final String finalFolderName = Constant.STREAM_AUDIO_FOLDERS  +"/"+folderName;
+    final String finalFolderName = Constant.STREAM_AUDIO_FOLDERS + "/" + folderName;
     // Use `AsyncRequestBody.fromBytes(new byte[0])` for an empty object
     s3AsyncClient
         .putObject(putObjectRequest, AsyncRequestBody.fromBytes(new byte[0]))
@@ -173,8 +175,7 @@ public class AwsS3Client {
 
   private Future<Void> listFiles() {
     Promise<Void> promise = Promise.promise();
-    ListObjectsV2Request request =
-        ListObjectsV2Request.builder().bucket(S3_BUCKET).build();
+    ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(S3_BUCKET).build();
     s3AsyncClient
         .listObjectsV2(request)
         .whenComplete(

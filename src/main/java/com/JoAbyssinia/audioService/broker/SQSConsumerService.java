@@ -99,7 +99,7 @@ public class SQSConsumerService {
                               throw new RuntimeException(e);
                             }
                           });
-                }else{
+                } else {
                   log.info("No messages received from SQS");
                   vertx.setTimer(10000L, t -> consumeMessages());
                 }
