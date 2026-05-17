@@ -1,8 +1,8 @@
 package com.JoAbyssinia.audioService.aws;
 
-import static com.JoAbyssinia.audioService.util.Constant.ROW_AUDIO_FOLDER;
-import static com.JoAbyssinia.audioService.util.Constant.STREAM_AUDIO_FOLDERS;
+import static com.JoAbyssinia.audioService.util.Constant.S3_BUCKET;
 
+import com.JoAbyssinia.audioService.util.Constant;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -89,7 +89,7 @@ public class AwsS3Client {
             readResult -> {
               PutObjectRequest request =
                   PutObjectRequest.builder()
-                      .bucket(STREAM_AUDIO_FOLDERS)
+                      .bucket(S3_BUCKET)
                       .key(s3FolderKey)
                       .contentType("application/x-mpegURL")
                       .build();
@@ -117,10 +117,9 @@ public class AwsS3Client {
       Path tempFilePath = Files.createTempFile("temp_audio_" + fileName + "_", ".mp3");
       File tempFile = tempFilePath.toFile();
 
-      String audioFileName = Paths.get(audioFileLocation).getFileName().toString();
       // Create S3 request
       GetObjectRequest request =
-          GetObjectRequest.builder().bucket(ROW_AUDIO_FOLDER).key(audioFileName).build();
+          GetObjectRequest.builder().bucket(S3_BUCKET).key(audioFileLocation).build();
 
       // Download from S3 and write to a temp file asynchronously
       s3AsyncClient
@@ -155,9 +154,9 @@ public class AwsS3Client {
 
     // Create the S3 request
     PutObjectRequest putObjectRequest =
-        PutObjectRequest.builder().bucket(STREAM_AUDIO_FOLDERS).key(folderName).build();
+        PutObjectRequest.builder().bucket(S3_BUCKET).key(Constant.STREAM_AUDIO_FOLDERS  +"/"+ folderName).build();
 
-    final String finalFolderName = folderName;
+    final String finalFolderName = Constant.STREAM_AUDIO_FOLDERS  +"/"+folderName;
     // Use `AsyncRequestBody.fromBytes(new byte[0])` for an empty object
     s3AsyncClient
         .putObject(putObjectRequest, AsyncRequestBody.fromBytes(new byte[0]))
@@ -175,7 +174,7 @@ public class AwsS3Client {
   private Future<Void> listFiles() {
     Promise<Void> promise = Promise.promise();
     ListObjectsV2Request request =
-        ListObjectsV2Request.builder().bucket(STREAM_AUDIO_FOLDERS).build();
+        ListObjectsV2Request.builder().bucket(S3_BUCKET).build();
     s3AsyncClient
         .listObjectsV2(request)
         .whenComplete(

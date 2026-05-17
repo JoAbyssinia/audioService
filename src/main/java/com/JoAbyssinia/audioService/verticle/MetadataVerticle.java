@@ -1,11 +1,11 @@
 package com.JoAbyssinia.audioService.verticle;
 
+import com.JoAbyssinia.audioService.aws.AWSRDSClient;
 import com.JoAbyssinia.audioService.aws.AwsSqsClient;
 import com.JoAbyssinia.audioService.broker.KafkaClient;
 import com.JoAbyssinia.audioService.broker.SQSConsumerService;
 import com.JoAbyssinia.audioService.config.AWSConfig;
 import com.JoAbyssinia.audioService.config.KafkaConfig;
-import com.JoAbyssinia.audioService.config.PostgresConfig;
 import com.JoAbyssinia.audioService.eventBus.MetadataEventBus;
 import com.JoAbyssinia.audioService.interceptor.ErrorInterceptor;
 import com.JoAbyssinia.audioService.interceptor.LogInterceptor;
@@ -78,9 +78,9 @@ public class MetadataVerticle extends AbstractVerticle {
 
   private AudioService getAudioService(
       EventBus eventBus, KafkaClient kafka, AwsSqsClient awsSqsClient) {
-    PostgresConfig postgresConfig = new PostgresConfig(vertx);
+    AWSRDSClient AWSRDSClient = new AWSRDSClient(vertx);
     AudioMetadataRepository audioMetadataRepository =
-        new AudioMetadataRepository(postgresConfig.getPool());
+        new AudioMetadataRepository(AWSRDSClient.getPool());
 
     return new AudioServiceImpl(eventBus, audioMetadataRepository, awsSqsClient);
   }

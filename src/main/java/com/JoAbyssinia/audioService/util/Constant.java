@@ -17,6 +17,7 @@ public class Constant {
           .getOrDefault("PROCESSED_AUDIO_NOTIFICATIONS", "processed-audio-notifications");
 
   // s3 bucket name
+  public static final String S3_BUCKET = "zema-bucket";
   public static final String STREAM_AUDIO_FOLDERS = "stream-audio-files";
-  public static final String ROW_AUDIO_FOLDER = "row-audio-files";
+  public static final String ROW_AUDIO_FOLDERS = "raw-audio-files";
 }

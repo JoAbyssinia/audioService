@@ -3,17 +3,27 @@ package com.JoAbyssinia.audioService;
 import com.JoAbyssinia.audioService.verticle.AudioTranscodeWorkerVerticle;
 import com.JoAbyssinia.audioService.verticle.MetadataVerticle;
 import io.vertx.core.*;
-import io.vertx.core.internal.logging.Logger;
-import io.vertx.core.internal.logging.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class MainVerticle extends AbstractVerticle {
 
-  Logger logger = LoggerFactory.getLogger(MainVerticle.class);
+  public static void main(String[] args) {
+    Vertx vertx = Vertx.vertx();
+    vertx
+        .deployVerticle(MainVerticle.class.getName())
+        .onSuccess(id -> log.info("MainVerticle deployed: {}", id))
+        .onFailure(
+            err -> {
+              log.info("Failed to deploy MainVerticle: {}", err.getMessage());
+              System.exit(1);
+            });
+  }
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
 
-    int workerInstances = config().getInteger("workerInstances", 5);
+    int workerInstances = config().getInteger("workerInstances", 3);
     DeploymentOptions worker =
         new DeploymentOptions()
             .setInstances(workerInstances)
@@ -26,10 +36,10 @@ public class MainVerticle extends AbstractVerticle {
         .onComplete(
             result -> {
               if (result.succeeded()) {
-                logger.info("Audio service deployed");
+                log.info("Audio service deployed");
                 startPromise.complete();
               } else {
-                logger.info("Audio service failed");
+                log.info("Audio service failed");
                 startPromise.fail(result.cause());
               }
             });
@@ -38,7 +48,7 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void stop(Promise<Void> stopPromise) throws Exception {
     super.stop(stopPromise);
-    logger.info("Audio service stopped");
+    log.info("Audio service stopped");
   }
 
   private Future<Void> deployHelper(String className, DeploymentOptions deploymentOptions) {
@@ -48,12 +58,12 @@ public class MainVerticle extends AbstractVerticle {
         .deployVerticle(className, deploymentOptions)
         .onSuccess(
             id -> {
-              logger.info("Deployed verticle " + className);
+              log.info("Deployed verticle {}", className);
               promise.complete();
             })
         .onFailure(
             err -> {
-              logger.error("Failed to deploy verticle " + className, err);
+              log.error("Failed to deploy verticle {}", className, err);
               promise.fail(err);
             });
 
